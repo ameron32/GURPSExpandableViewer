@@ -2,22 +2,39 @@ package com.ameron32.gurpsviewertest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-import com.ameron32.gurpsviewertest.Downloader;
-import com.ameron32.gurpsviewertest.MainActivity;
-import com.ameron32.gurpsviewertest.ProgressMonitor;
-import com.ameron32.testing.ImportTesting;
-
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Environment;
-import android.app.Activity;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.SimpleExpandableListAdapter;
 
-public class MainActivity extends Activity {
+import com.ameron32.libgurps.attackoptions.MeleeAttackOption;
+import com.ameron32.libgurps.attackoptions.ThrownAttackOption;
+import com.ameron32.libgurps.character.stats.Advantage;
+import com.ameron32.libgurps.character.stats.Skill;
+import com.ameron32.libgurps.frmwk.GURPSObject;
+import com.ameron32.libgurps.items.library.LibraryAddon;
+import com.ameron32.libgurps.items.library.LibraryArmor;
+import com.ameron32.libgurps.items.library.LibraryMeleeWeapon;
+import com.ameron32.libgurps.items.library.LibraryRangedWeapon;
+import com.ameron32.libgurps.items.library.LibraryRangedWeaponAmmunition;
+import com.ameron32.libgurps.items.library.LibraryShield;
+import com.ameron32.libgurps.items.library.LibraryThrowableProjectile;
+import com.ameron32.testing.ImportTesting;
+
+public class MainActivity extends Activity implements OnChildClickListener, OnClickListener, TextWatcher {
 
     ImportTesting it;
     private final String downloadDir = "https://dl.dropboxusercontent.com/u/949753/GURPS/GURPSBuilder/156/";
@@ -29,13 +46,19 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		init();
-//		start();
-		createELA();
+		start();
+//		createELA();
 	}
 
 	ExpandableListView elv;
+	EditText etSearch;
+	
 	private void init() {
 		elv = (ExpandableListView) findViewById(R.id.expandableListView1);
+		elv.setOnChildClickListener(this);
+		etSearch = (EditText) findViewById(R.id.etSearch);
+		etSearch.setOnClickListener(MainActivity.this);
+		etSearch.addTextChangedListener(MainActivity.this);
 	}
 
 	@Override
@@ -58,7 +81,7 @@ public class MainActivity extends Activity {
     Runnable updateText = new Runnable() {
 		@Override
 		public void run() {
-//			tvMain.setText(ImportTesting.getSB());
+			createELA();
 		}
 	};
 	Runnable importAndLoad = new Runnable() {
@@ -92,16 +115,18 @@ public class MainActivity extends Activity {
     
     
     
-    
+    ArrayList<HashMap<String, String>> groupList;
+    ArrayList<ArrayList<HashMap<String, String>>> childList;
+    ArrayList<ArrayList<HashMap<String, Long>>> childListLong;
     private void createELA() {
 //    @SuppressWarnings("unchecked")
 //    public void onCreate(Bundle savedInstanceState) {
 //        try{
 //             super.onCreate(savedInstanceState);
 //             setContentView(R.layout.main);
- 
-        SimpleExpandableListAdapter expListAdapter =
-//            new SimpleExpandableListAdapter(
+ groupList = createGroupList();
+ childList = createChildList();
+         //            new SimpleExpandableListAdapter(
 //                    this,
 //                    createGroupList(),              // Creating group List.
 //                    R.layout.group_row,             // Group item layout XML.
@@ -113,16 +138,16 @@ public class MainActivity extends Activity {
 //                    new int[] { R.id.grp_child}     // Data under the keys above go into these TextViews.
 //                );
 //            setListAdapter( expListAdapter );       // setting the adapter in the list.
-        		new SimpleExpandableListAdapter(this, 
-        				createGroupList(),
-        				R.layout.group_row,
-        				new String[] { "Group Item" },
-        				new int[] { R.id.row_name },
-        				createChildList(),
-        				R.layout.child_row,
-        				new String[] { "Sub Item" },
-        				new int[] { R.id.grp_child }
-        				);
+ 		expListAdapter = new SimpleExpandableListAdapter(this, 
+				groupList,
+				R.layout.group_row,
+				new String[] { "Group Item" },
+				new int[] { R.id.row_name },
+				childList,
+				R.layout.child_row,
+				new String[] { "Sub Item" },
+				new int[] { R.id.grp_child }
+				);
         elv.setAdapter(expListAdapter);
         
 //        } catch(Exception e){
@@ -132,31 +157,73 @@ public class MainActivity extends Activity {
  
     /* Creating the Hashmap for the row */
 //    @SuppressWarnings("unchecked")
-    private List createGroupList() {
-          ArrayList result = new ArrayList();
-          for( int i = 0 ; i < 15 ; ++i ) { // 15 groups........
-            HashMap m = new HashMap();
-            m.put( "Group Item","Group Item " + i ); // the key and it's value.
-            result.add( m );
+    private ArrayList<HashMap<String, String>> createGroupList() {
+          ArrayList<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
+//          for( int i = 0 ; i < 15 ; ++i ) { // 15 groups........
+//            HashMap m = new HashMap();
+//            m.put( "Group Item","Group Item " + i ); // the key and it's value.
+//            result.add( m );
+//          }
+          for (Class<?> c : include) {
+        	  HashMap<String, String> m = new HashMap<String, String>();
+        	  m.put( "Group Item" , c.getSimpleName());
+        	  result.add( m );
           }
-          return (List)result;
+          return result;
     }
  
+    Class<?>[] include = { 
+    		Advantage.class, 
+    		LibraryAddon.class, 
+    		LibraryArmor.class, MeleeAttackOption.class, LibraryMeleeWeapon.class, 
+    		LibraryRangedWeaponAmmunition.class, LibraryRangedWeapon.class, LibraryShield.class,
+     		ThrownAttackOption.class, LibraryThrowableProjectile.class,
+    		Skill.class 
+    		};
+    
     /* creatin the HashMap for the children */
 //    @SuppressWarnings("unchecked")
-    private List createChildList() {
- 
-        ArrayList result = new ArrayList();
-        for( int i = 0 ; i < 15 ; ++i ) { // this -15 is the number of groups(Here it's fifteen)
-          /* each group need each HashMap-Here for each group we have 3 subgroups */
-          ArrayList secList = new ArrayList();
-          for( int n = 0 ; n < 3 ; n++ ) {
-            HashMap child = new HashMap();
-            child.put( "Sub Item", "Sub Item " + n );
-            secList.add( child );
-          }
-         result.add( secList );
-        }
+    private ArrayList<ArrayList<HashMap<String, String>>> createChildList() {
+//      for( int i = 0 ; i < 15 ; ++i ) { // this -15 is the number of groups(Here it's fifteen)
+//      /* each group need each HashMap-Here for each group we have 3 subgroups */
+//      ArrayList secList = new ArrayList();
+//      for( int n = 0 ; n < 3 ; n++ ) {
+//        HashMap child = new HashMap();
+//        child.put( "Sub Item", "Sub Item " + n );
+//        secList.add( child );
+//      }
+//     result.add( secList );
+//    }
+        ArrayList<ArrayList<HashMap<String, String>>> result = new ArrayList<ArrayList<HashMap<String, String>>>();
+        ArrayList<ArrayList<HashMap<String, Long>>> resultLong = new ArrayList<ArrayList<HashMap<String, Long>>>();
+		for (Class<?> c : include) {
+			ArrayList<HashMap<String, String>> secList = new ArrayList<HashMap<String, String>>();
+			ArrayList<HashMap<String, Long>> secListLong = new ArrayList<HashMap<String, Long>>();
+			for (GURPSObject go : it.getEverything()) {
+				boolean mustExclude = false;
+//				boolean hasSearchString = false;
+//				if (c.isInstance(go)) {
+//					if (go.getName().contains(searchString)) hasSearchString = true;
+//				}
+				// for (Class<?> c : it.getExcludes()) {
+				// if (c.isInstance(go)) {
+				// mustExclude = true;
+				// }
+				// }
+				HashMap<String, String> child = new HashMap<String, String>();
+				HashMap<String, Long> childLong = new HashMap<String, Long>();
+				if (!mustExclude && c.isInstance(go)) {
+					child.put("Sub Item", go.getName());
+					childLong.put("Sub Item", go.getObjectId());
+				}
+				secList.add(child);
+				secListLong.add(childLong);
+			}
+			result.add(secList);
+			resultLong.add(secListLong);
+		}
+        
+		childListLong = resultLong;
         return result;
     }
     public void  onContentChanged  () {
@@ -165,16 +232,70 @@ public class MainActivity extends Activity {
     }
     /* This function is called on each child click */
     public boolean onChildClick( ExpandableListView parent, View v, int groupPosition,int childPosition,long id) {
-        System.out.println("Inside onChildClick at groupPosition = " + groupPosition +" Child clicked at position " + childPosition);
+//        System.out.println("Inside onChildClick at groupPosition = " + groupPosition +" Child clicked at position " + childPosition);
+    	GURPSObject go = GURPSObject.findGURPSObjectById(childListLong.get(groupPosition).get(childPosition).get("Sub Item"));
+//        Toast.makeText(MainActivity.this, 
+//        		go.getName() + ": " + go.getObjectId(), 
+//        		Toast.LENGTH_LONG).show();
+        
+        final AlertDialog.Builder d = new AlertDialog.Builder(MainActivity.this);
+        d.setMessage(go.toString());
+        d.setOnKeyListener(new Dialog.OnKeyListener() {
+			@Override
+			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+				if (keyCode == KeyEvent.KEYCODE_BACK) dialog.dismiss();
+				return true;
+			}
+		});
+        d.show();
         return true;
     }
  
     /* This function is called on expansion of the group */
     public void  onGroupExpand  (int groupPosition) {
         try{
-             System.out.println("Group exapanding Listener => groupPosition = " + groupPosition);
+            System.out.println("Group exapanding Listener => groupPosition = " + groupPosition);
         }catch(Exception e){
             System.out.println(" groupPosition Errrr +++ " + e.getMessage());
         }
     }
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		finish();
+	}
+
+	@Override
+	public void onClick(View v) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
+	
+	
+	/* TEXTWATCHER */
+	String searchString = "";
+	private SimpleExpandableListAdapter expListAdapter; 
+	@Override
+	public void afterTextChanged(Editable s) {
+		searchString = s.toString();
+		
+		expListAdapter.notifyDataSetChanged();
+	}
+
+	@Override
+	public void beforeTextChanged(CharSequence s, int start, int count,
+			int after) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onTextChanged(CharSequence s, int start, int before, int count) {
+		// TODO Auto-generated method stub
+		
+	}
+    
 }
