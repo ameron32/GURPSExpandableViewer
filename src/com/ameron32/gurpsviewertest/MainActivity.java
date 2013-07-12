@@ -24,7 +24,7 @@ import com.ameron32.libgurps.attackoptions.MeleeAttackOption;
 import com.ameron32.libgurps.attackoptions.ThrownAttackOption;
 import com.ameron32.libgurps.character.stats.Advantage;
 import com.ameron32.libgurps.character.stats.Skill;
-import com.ameron32.libgurps.frmwk.GURPSObject;
+import com.ameron32.libgurps.impl.GURPSObject;
 import com.ameron32.libgurps.items.library.LibraryAddon;
 import com.ameron32.libgurps.items.library.LibraryArmor;
 import com.ameron32.libgurps.items.library.LibraryMeleeWeapon;
@@ -34,7 +34,7 @@ import com.ameron32.libgurps.items.library.LibraryShield;
 import com.ameron32.libgurps.items.library.LibraryThrowableProjectile;
 import com.ameron32.testing.ImportTesting;
 
-public class MainActivity extends Activity implements OnChildClickListener, OnClickListener, TextWatcher {
+public class MainActivity extends Activity implements OnChildClickListener, OnClickListener {
 
     ImportTesting it;
     private final String downloadDir = "https://dl.dropboxusercontent.com/u/949753/GURPS/GURPSBuilder/156/";
@@ -47,18 +47,13 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		setContentView(R.layout.activity_main);
 		init();
 		start();
-//		createELA();
 	}
 
 	ExpandableListView elv;
-	EditText etSearch;
 	
 	private void init() {
 		elv = (ExpandableListView) findViewById(R.id.expandableListView1);
 		elv.setOnChildClickListener(this);
-		etSearch = (EditText) findViewById(R.id.etSearch);
-		etSearch.setOnClickListener(MainActivity.this);
-		etSearch.addTextChangedListener(MainActivity.this);
 	}
 
 	@Override
@@ -115,17 +110,16 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     
     
     
-    ArrayList<HashMap<String, String>> groupList;
-    ArrayList<ArrayList<HashMap<String, String>>> childList;
-    ArrayList<ArrayList<HashMap<String, Long>>> childListLong;
+    private final ArrayList<HashMap<String, String>> groupList = createGroupList();
+    private final ArrayList<ArrayList<HashMap<String, String>>> childList = createChildList();
+    private ArrayList<ArrayList<HashMap<String, Long>>> childListLong;
+    private SimpleExpandableListAdapter expListAdapter;
     private void createELA() {
 //    @SuppressWarnings("unchecked")
 //    public void onCreate(Bundle savedInstanceState) {
 //        try{
 //             super.onCreate(savedInstanceState);
 //             setContentView(R.layout.main);
- groupList = createGroupList();
- childList = createChildList();
          //            new SimpleExpandableListAdapter(
 //                    this,
 //                    createGroupList(),              // Creating group List.
@@ -272,30 +266,4 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		
 	}
 
-	
-	
-	
-	/* TEXTWATCHER */
-	String searchString = "";
-	private SimpleExpandableListAdapter expListAdapter; 
-	@Override
-	public void afterTextChanged(Editable s) {
-		searchString = s.toString();
-		
-		expListAdapter.notifyDataSetChanged();
-	}
-
-	@Override
-	public void beforeTextChanged(CharSequence s, int start, int count,
-			int after) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onTextChanged(CharSequence s, int start, int before, int count) {
-		// TODO Auto-generated method stub
-		
-	}
-    
 }
