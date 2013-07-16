@@ -29,39 +29,45 @@ public class ProgressMonitor extends AsyncTask<String, Integer, String> {
 	@Override
 	protected void onPreExecute() {
 		super.onPreExecute();
-//		pDialog.setMessage(stages[stage]);
+		initStages();
+		
+		pDialog.setMessage(stages[stage]);
 		pDialog.show();
+	}
+	
+	private void initStages() {
+		// update me as stages are added
+		totalStages = 5;
+		stages = new String[totalStages];
+		
+		stages[0] = "Importing...";
+		stages[1] = "Generating Display...";
+		stages[2] = "Loading Options...";
+		stages[3] = "Generating Final Text...";
+		stages[4] = "Complete!";
 	}
 
 	private int stage = 0;
 	private int totalStages = 0;
-	private final String[] stages = new String[totalStages];
+	private String[] stages;
 	@Override
 	protected String doInBackground(String... params) {
-		// update me as stages are added
-//		totalStages = 4;
-//		
-//		stages[0] = "Importing...";
-//		stages[1] = "Generating Display...";
-//		stages[2] = "Loading Options...";
-//		stages[3] = "Generating Final Text...";
-//		stages[4] = "Complete!";
-//		
+
 		it.importer();
-//		stage++;
-//		publishProgress(stage * 25);
-//
+		stage++;
+		publishProgress(stage * 25);
+
 		it.display1();
-//		stage++;
-//		publishProgress(stage * 25);
-//		
+		stage++;
+		publishProgress(stage * 25);
+		
 		it.attackOptionLoading();
-//		stage++;
-//		publishProgress(stage * 25);
-//		
+		stage++;
+		publishProgress(stage * 25);
+		
 		it.display2();
-//		stage++;
-//		publishProgress(stage * 25);
+		stage++;
+		publishProgress(stage * 25);
 		
 		return null;
 	}
@@ -69,8 +75,9 @@ public class ProgressMonitor extends AsyncTask<String, Integer, String> {
 	@Override
 	protected void onPostExecute(String result) {
 		super.onPostExecute(result);
-		completionTask.run();
 		pDialog.dismiss();
+		if (completionTask != null) 
+			completionTask.run();
 	}
 
 

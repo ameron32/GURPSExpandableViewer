@@ -9,17 +9,16 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Environment;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.EditText;
+import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.SimpleExpandableListAdapter;
 
+import com.ameron32.libcharacter.library.PersonalityTrait;
 import com.ameron32.libgurps.attackoptions.MeleeAttackOption;
 import com.ameron32.libgurps.attackoptions.ThrownAttackOption;
 import com.ameron32.libgurps.character.stats.Advantage;
@@ -27,6 +26,7 @@ import com.ameron32.libgurps.character.stats.Skill;
 import com.ameron32.libgurps.impl.GURPSObject;
 import com.ameron32.libgurps.items.library.LibraryAddon;
 import com.ameron32.libgurps.items.library.LibraryArmor;
+import com.ameron32.libgurps.items.library.LibraryItem;
 import com.ameron32.libgurps.items.library.LibraryMeleeWeapon;
 import com.ameron32.libgurps.items.library.LibraryRangedWeapon;
 import com.ameron32.libgurps.items.library.LibraryRangedWeaponAmmunition;
@@ -37,7 +37,8 @@ import com.ameron32.testing.ImportTesting;
 public class MainActivity extends Activity implements OnChildClickListener, OnClickListener {
 
     ImportTesting it;
-    private final String downloadDir = "https://dl.dropboxusercontent.com/u/949753/GURPS/GURPSBuilder/156/";
+    private final String downloadDir = "https://dl.dropboxusercontent.com/u/949753/GURPS/GURPSBuilder/" 
+    		+ ImportTesting.getVERSION() + "/";
     private final String sdDir = Environment.getExternalStorageDirectory()
             .getPath() + "/ameron32projects/GURPSBattleFlow/";
 	
@@ -50,10 +51,16 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 	}
 
 	ExpandableListView elv;
-	
+	Button bDownload, bUpdate, bLoad;
 	private void init() {
 		elv = (ExpandableListView) findViewById(R.id.expandableListView1);
 		elv.setOnChildClickListener(this);
+		bDownload = (Button) findViewById(R.id.bDownload);
+		bDownload.setOnClickListener(this);
+		bUpdate = (Button) findViewById(R.id.bUpdate);
+		bUpdate.setOnClickListener(this);
+		bLoad = (Button) findViewById(R.id.bLoad);
+		bLoad.setOnClickListener(this);
 	}
 
 	@Override
@@ -65,6 +72,9 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 	
     private void start() {
         it = new ImportTesting(new String[] { sdDir });
+    }
+    
+    private void download() {
         String[] fileNames = ImportTesting.getAllFilenames();
         String[] downloadLocations = fileNames.clone();
         for (int i = 0; i < downloadLocations.length; i++) {
@@ -82,7 +92,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 	Runnable importAndLoad = new Runnable() {
 		@Override
 		public void run() {
-        	new ProgressMonitor(MainActivity.this, it, updateText).execute();
+        	new ProgressMonitor(MainActivity.this, it, null).execute();
 		}
 	};
 	
@@ -110,11 +120,13 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     
     
     
-    private final ArrayList<HashMap<String, String>> groupList = createGroupList();
-    private final ArrayList<ArrayList<HashMap<String, String>>> childList = createChildList();
+    private ArrayList<HashMap<String, String>> groupList;
+    private ArrayList<ArrayList<HashMap<String, String>>> childList;
     private ArrayList<ArrayList<HashMap<String, Long>>> childListLong;
     private SimpleExpandableListAdapter expListAdapter;
     private void createELA() {
+    	groupList = createGroupList();
+    	childList = createChildList();
 //    @SuppressWarnings("unchecked")
 //    public void onCreate(Bundle savedInstanceState) {
 //        try{
@@ -168,11 +180,12 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
  
     Class<?>[] include = { 
     		Advantage.class, 
-    		LibraryAddon.class, 
+    		LibraryItem.class, LibraryAddon.class, 
     		LibraryArmor.class, MeleeAttackOption.class, LibraryMeleeWeapon.class, 
     		LibraryRangedWeaponAmmunition.class, LibraryRangedWeapon.class, LibraryShield.class,
      		ThrownAttackOption.class, LibraryThrowableProjectile.class,
-    		Skill.class 
+    		Skill.class,
+    		PersonalityTrait.class
     		};
     
     /* creatin the HashMap for the children */
@@ -193,34 +206,37 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		for (Class<?> c : include) {
 			ArrayList<HashMap<String, String>> secList = new ArrayList<HashMap<String, String>>();
 			ArrayList<HashMap<String, Long>> secListLong = new ArrayList<HashMap<String, Long>>();
-			for (GURPSObject go : it.getEverything()) {
+			for (GURPSObject go : ImportTesting.getEverything()) {
 				boolean mustExclude = false;
 //				boolean hasSearchString = false;
 //				if (c.isInstance(go)) {
 //					if (go.getName().contains(searchString)) hasSearchString = true;
 //				}
-				// for (Class<?> c : it.getExcludes()) {
-				// if (c.isInstance(go)) {
-				// mustExclude = true;
-				// }
-				// }
-				HashMap<String, String> child = new HashMap<String, String>();
-				HashMap<String, Long> childLong = new HashMap<String, Long>();
+				if (ImportTesting.getExcludes().length != 0) {
+					for (Class<?> c2 : ImportTesting.getExcludes()) {
+						if (c2.isInstance(go)) {
+							mustExclude = true;
+						}
+					}
+				}
+
 				if (!mustExclude && c.isInstance(go)) {
+					HashMap<String, String> child = new HashMap<String, String>();
+					HashMap<String, Long> childLong = new HashMap<String, Long>();
 					child.put("Sub Item", go.getName());
 					childLong.put("Sub Item", go.getObjectId());
+					secList.add(child);
+					secListLong.add(childLong);
 				}
-				secList.add(child);
-				secListLong.add(childLong);
 			}
-			result.add(secList);
-			resultLong.add(secListLong);
+			if (!secList.isEmpty()) result.add(secList);
+			if (!secListLong.isEmpty()) resultLong.add(secListLong);
 		}
         
 		childListLong = resultLong;
         return result;
     }
-    public void  onContentChanged  () {
+    public void onContentChanged  () {
         System.out.println("onContentChanged");
         super.onContentChanged();
     }
@@ -233,7 +249,13 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 //        		Toast.LENGTH_LONG).show();
         
         final AlertDialog.Builder d = new AlertDialog.Builder(MainActivity.this);
-        d.setMessage(go.toString());
+        d.setMessage(go.getName() + "\n" +
+        		go.getObjectId() + "\n" +
+        		go.getDescription() + "\n" +
+        		go.getSID() + "\n" +
+        		go.getNotes() + "\n" + 
+        		go.toString()
+        		);
         d.setOnKeyListener(new Dialog.OnKeyListener() {
 			@Override
 			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
@@ -247,9 +269,9 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
  
     /* This function is called on expansion of the group */
     public void  onGroupExpand  (int groupPosition) {
-        try{
+        try {
             System.out.println("Group exapanding Listener => groupPosition = " + groupPosition);
-        }catch(Exception e){
+        } catch (Exception e) {
             System.out.println(" groupPosition Errrr +++ " + e.getMessage());
         }
     }
@@ -262,8 +284,17 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 
 	@Override
 	public void onClick(View v) {
-		// TODO Auto-generated method stub
-		
+		switch (v.getId()) {
+		case R.id.bDownload:
+			download();
+			break;
+		case R.id.bUpdate:
+			importAndLoad.run();
+			break;
+		case R.id.bLoad:
+			updateText.run();
+			break;
+		}
 	}
 
 }

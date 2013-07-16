@@ -8,10 +8,35 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
+    <Button
+	    android:id="@+id/bDownload"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+	    android:layout_alignParentTop="true"
+	    android:text="Download" />
+    	
+	<Button
+	    android:id="@+id/bUpdate"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_toRightOf="@+id/bDownload"
+	    android:layout_alignParentTop="true"
+	    android:text="Update" />
+
+	<Button
+	    android:id="@+id/bLoad"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentTop="true"
+	    android:layout_toRightOf="@+id/bUpdate"
+	    android:text="Load" />
+        
     <ExpandableListView
         android:id="@+id/expandableListView1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/bDownload"
         android:layout_alignParentLeft="true" />
 
 </RelativeLayout>

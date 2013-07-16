@@ -136,7 +136,8 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 				Log.e("Downloads", sb.toString());
 			}
         mDownloadDialog.dismiss();
-		doNext.run();
+		if (doNext != null)
+			doNext.run();
 	}
 
 	public void setDlDir(String dlDir) {
