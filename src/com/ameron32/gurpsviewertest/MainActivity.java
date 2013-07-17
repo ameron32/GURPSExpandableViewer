@@ -23,6 +23,7 @@ import com.ameron32.libgurps.attackoptions.MeleeAttackOption;
 import com.ameron32.libgurps.attackoptions.ThrownAttackOption;
 import com.ameron32.libgurps.character.stats.Advantage;
 import com.ameron32.libgurps.character.stats.Skill;
+import com.ameron32.libgurps.character.stats.Technique;
 import com.ameron32.libgurps.impl.GURPSObject;
 import com.ameron32.libgurps.items.library.LibraryAddon;
 import com.ameron32.libgurps.items.library.LibraryArmor;
@@ -32,12 +33,15 @@ import com.ameron32.libgurps.items.library.LibraryRangedWeapon;
 import com.ameron32.libgurps.items.library.LibraryRangedWeaponAmmunition;
 import com.ameron32.libgurps.items.library.LibraryShield;
 import com.ameron32.libgurps.items.library.LibraryThrowableProjectile;
+import com.ameron32.libgurps.tools.StringTools;
 import com.ameron32.testing.ImportTesting;
+import com.ameron32.testing.TestingTools;
 
 public class MainActivity extends Activity implements OnChildClickListener, OnClickListener {
 
     ImportTesting it;
-    private final String downloadDir = "https://dl.dropboxusercontent.com/u/949753/GURPS/GURPSBuilder/" 
+    private final String downloadDir = 
+    		"https://dl.dropboxusercontent.com/u/949753/GURPS/GURPSBuilder/" 
     		+ ImportTesting.getVERSION() + "/";
     private final String sdDir = Environment.getExternalStorageDirectory()
             .getPath() + "/ameron32projects/GURPSBattleFlow/";
@@ -99,7 +103,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     private void downloadAssets(String dlDir, String[] fileNames,
             boolean update, String[] sUrl) {
         // execute this when the downloader must be fired
-        final Downloader d = new Downloader(MainActivity.this, importAndLoad);
+        final Downloader d = new Downloader(MainActivity.this, null);
         if (dlDir != null)
             d.setDlDir(dlDir);
         d.setDlFiles(fileNames);
@@ -172,68 +176,67 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 //          }
           for (Class<?> c : include) {
         	  HashMap<String, String> m = new HashMap<String, String>();
-        	  m.put( "Group Item" , c.getSimpleName());
+        	  m.put( "Group Item" , c.getSimpleName() + " [" + TestingTools.numOf(c) + "]");
         	  result.add( m );
           }
           return result;
     }
  
     Class<?>[] include = { 
-    		Advantage.class, 
+    		Advantage.class, Skill.class, Technique.class, 
+    		PersonalityTrait.class,
     		LibraryItem.class, LibraryAddon.class, 
-    		LibraryArmor.class, MeleeAttackOption.class, LibraryMeleeWeapon.class, 
-    		LibraryRangedWeaponAmmunition.class, LibraryRangedWeapon.class, LibraryShield.class,
-     		ThrownAttackOption.class, LibraryThrowableProjectile.class,
-    		Skill.class,
-    		PersonalityTrait.class
+    		LibraryArmor.class, LibraryShield.class, LibraryMeleeWeapon.class, 
+    		LibraryRangedWeapon.class, 
+    		LibraryRangedWeaponAmmunition.class, LibraryThrowableProjectile.class, 
+    		MeleeAttackOption.class,ThrownAttackOption.class, 
     		};
     
     /* creatin the HashMap for the children */
 //    @SuppressWarnings("unchecked")
     private ArrayList<ArrayList<HashMap<String, String>>> createChildList() {
-//      for( int i = 0 ; i < 15 ; ++i ) { // this -15 is the number of groups(Here it's fifteen)
-//      /* each group need each HashMap-Here for each group we have 3 subgroups */
-//      ArrayList secList = new ArrayList();
-//      for( int n = 0 ; n < 3 ; n++ ) {
-//        HashMap child = new HashMap();
-//        child.put( "Sub Item", "Sub Item " + n );
-//        secList.add( child );
-//      }
-//     result.add( secList );
-//    }
         ArrayList<ArrayList<HashMap<String, String>>> result = new ArrayList<ArrayList<HashMap<String, String>>>();
         ArrayList<ArrayList<HashMap<String, Long>>> resultLong = new ArrayList<ArrayList<HashMap<String, Long>>>();
-		for (Class<?> c : include) {
-			ArrayList<HashMap<String, String>> secList = new ArrayList<HashMap<String, String>>();
-			ArrayList<HashMap<String, Long>> secListLong = new ArrayList<HashMap<String, Long>>();
-			for (GURPSObject go : ImportTesting.getEverything()) {
-				boolean mustExclude = false;
-//				boolean hasSearchString = false;
-//				if (c.isInstance(go)) {
-//					if (go.getName().contains(searchString)) hasSearchString = true;
-//				}
-				if (ImportTesting.getExcludes().length != 0) {
-					for (Class<?> c2 : ImportTesting.getExcludes()) {
-						if (c2.isInstance(go)) {
-							mustExclude = true;
-						}
-					}
-				}
-
-				if (!mustExclude && c.isInstance(go)) {
-					HashMap<String, String> child = new HashMap<String, String>();
-					HashMap<String, Long> childLong = new HashMap<String, Long>();
-					child.put("Sub Item", go.getName());
-					childLong.put("Sub Item", go.getObjectId());
-					secList.add(child);
-					secListLong.add(childLong);
-				}
-			}
-			if (!secList.isEmpty()) result.add(secList);
-			if (!secListLong.isEmpty()) resultLong.add(secListLong);
+        
+        // prepare a placeholder for each group
+		for (int i = 0; i < include.length; i++) {
+			result.add(new ArrayList<HashMap<String, String>>());
+			resultLong.add(new ArrayList<HashMap<String, Long>>());
 		}
         
-		childListLong = resultLong;
+		Class<?>[] excludes = ImportTesting.getExcludes();
+		int excludesLength = excludes.length;
+        for (GURPSObject go : ImportTesting.getEverything()) {
+			// determine whether to exclude this object
+        	boolean exclude = false;
+			if (excludesLength != 0) {
+				for (Class<?> c2 : excludes) {
+					if (c2.isInstance(go))
+						exclude = true;
+				}
+			}
+
+			if (!exclude) {
+				// put the object into the proper group(s)
+				for (int x = 0; x < include.length; x++) {
+					// verify that the object is of a special class, and not inheriting that class
+					if (include[x].isInstance(go) 
+							&& include[x].getSimpleName().equals(go.getClass().getSimpleName())) {
+						// add the item to the list
+						HashMap<String, String> entry = new HashMap<String, String>();
+						HashMap<String, Long> entryLong = new HashMap<String, Long>();
+						entry.put("Sub Item", go.getName());
+						entryLong.put("Sub Item", go.getObjectId());
+
+						result.get(x).add(entry);
+						resultLong.get(x).add(entryLong);
+					}
+				}
+			}
+
+		}
+        
+        childListLong = resultLong;
         return result;
     }
     public void onContentChanged  () {
@@ -249,13 +252,15 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 //        		Toast.LENGTH_LONG).show();
         
         final AlertDialog.Builder d = new AlertDialog.Builder(MainActivity.this);
-        d.setMessage(go.getName() + "\n" +
-        		go.getObjectId() + "\n" +
-        		go.getDescription() + "\n" +
-        		go.getSID() + "\n" +
-        		go.getNotes() + "\n" + 
-        		go.toString()
+        d.setMessage("Name:" + go.getName() + " of " + go.getClass().getSimpleName() + "\n" 
+//        		+ go.getObjectId() + "\n" 
+				+ "***************\n"
+				+ StringTools.convertBarsToParagraphs(go.getDescription()) + "\n"
+        		+ go.getSID() + "\n" 
+        		+ ((go.getNotes().size() > 0) ? go.getNotes() : "[No Notes]") + "\n" 
+//        		+ go.toString()
         		);
+        
         d.setOnKeyListener(new Dialog.OnKeyListener() {
 			@Override
 			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
