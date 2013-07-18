@@ -251,24 +251,10 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 //        		go.getName() + ": " + go.getObjectId(), 
 //        		Toast.LENGTH_LONG).show();
         
-        final AlertDialog.Builder d = new AlertDialog.Builder(MainActivity.this);
-        d.setMessage("Name:" + go.getName() + " of " + go.getClass().getSimpleName() + "\n" 
-//        		+ go.getObjectId() + "\n" 
-				+ "***************\n"
-				+ StringTools.convertBarsToParagraphs(go.getDescription()) + "\n"
-        		+ go.getSID() + "\n" 
-        		+ ((go.getNotes().size() > 0) ? go.getNotes() : "[No Notes]") + "\n" 
-//        		+ go.toString()
-        		);
-        
-        d.setOnKeyListener(new Dialog.OnKeyListener() {
-			@Override
-			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-				if (keyCode == KeyEvent.KEYCODE_BACK) dialog.dismiss();
-				return true;
-			}
-		});
-        d.show();
+    	final InformationDialog inf = new InformationDialog(MainActivity.this);
+    	inf.set(R.layout.information_dialog, go);
+    	inf.show();
+    	
         return true;
     }
  
@@ -301,5 +287,5 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 			break;
 		}
 	}
-
+	
 }
