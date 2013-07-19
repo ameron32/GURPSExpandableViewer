@@ -47,6 +47,12 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 	private final Button bClose;
 	private final ProgressBar pbLoading;
 	private void init() {
+		tvContent.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				// nothing
+			}
+		});
 		pbLoading.setMax(100);
 		bClose.setOnClickListener(new View.OnClickListener() {
 			@Override

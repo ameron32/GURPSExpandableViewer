@@ -14,7 +14,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:text="Title"
-        android:textSize="20sp" />
+        android:textSize="28sp" />
 
     <TextView
         android:id="@+id/tvClass"
@@ -23,7 +23,7 @@
         android:layout_alignBottom="@+id/tvTitle"
         android:layout_alignParentRight="true"
         android:text="Class"
-        android:textSize="16sp" />
+        android:textSize="24sp" />
 
     <ProgressBar
         android:id="@+id/pbLoading"
@@ -52,7 +52,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Content"
-                android:textSize="12sp" />
+                android:textSize="16sp" />
         </LinearLayout>
     </ScrollView>
 
