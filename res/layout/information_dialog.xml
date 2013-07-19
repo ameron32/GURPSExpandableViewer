@@ -2,10 +2,10 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="5dp"
-    android:paddingLeft="5dp"
-    android:paddingRight="5dp"
-    android:paddingTop="5dp" >
+    android:paddingBottom="5sp"
+    android:paddingLeft="5sp"
+    android:paddingRight="5sp"
+    android:paddingTop="5sp" >
 
     <TextView
         android:id="@+id/tvTitle"
@@ -14,7 +14,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:text="Title"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textSize="20sp" />
 
     <TextView
         android:id="@+id/tvClass"
@@ -23,13 +23,13 @@
         android:layout_alignBottom="@+id/tvTitle"
         android:layout_alignParentRight="true"
         android:text="Class"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textSize="16sp" />
 
     <ProgressBar
         android:id="@+id/pbLoading"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="5dp"
+        android:layout_height="5sp"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/tvClass" />
 
@@ -51,7 +51,8 @@
                 android:id="@+id/tvContent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Content" />
+                android:text="Content"
+                android:textSize="12sp" />
         </LinearLayout>
     </ScrollView>
 

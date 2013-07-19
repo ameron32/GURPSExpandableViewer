@@ -13,6 +13,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnKeyListener;
 import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
@@ -37,7 +38,7 @@ import com.ameron32.libgurps.tools.StringTools;
 import com.ameron32.testing.ImportTesting;
 import com.ameron32.testing.TestingTools;
 
-public class MainActivity extends Activity implements OnChildClickListener, OnClickListener {
+public class MainActivity extends Activity implements OnChildClickListener, OnClickListener, OnKeyListener {
 
     ImportTesting it;
     private final String downloadDir = 
@@ -131,23 +132,6 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     private void createELA() {
     	groupList = createGroupList();
     	childList = createChildList();
-//    @SuppressWarnings("unchecked")
-//    public void onCreate(Bundle savedInstanceState) {
-//        try{
-//             super.onCreate(savedInstanceState);
-//             setContentView(R.layout.main);
-         //            new SimpleExpandableListAdapter(
-//                    this,
-//                    createGroupList(),              // Creating group List.
-//                    R.layout.group_row,             // Group item layout XML.
-//                    new String[] { "Group Item" },  // the key of group item.
-//                    new int[] { R.id.row_name },    // ID of each group item.-Data under the key goes into this TextView.
-//                    createChildList(),              // childData describes second-level entries.
-//                    R.layout.child_row,             // Layout for sub-level entries(second level).
-//                    new String[] {"Sub Item"},      // Keys in childData maps to display.
-//                    new int[] { R.id.grp_child}     // Data under the keys above go into these TextViews.
-//                );
-//            setListAdapter( expListAdapter );       // setting the adapter in the list.
  		expListAdapter = new SimpleExpandableListAdapter(this, 
 				groupList,
 				R.layout.group_row,
@@ -159,21 +143,10 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 				new int[] { R.id.grp_child }
 				);
         elv.setAdapter(expListAdapter);
-        
-//        } catch(Exception e){
-//            System.out.println("Errrr +++ " + e.getMessage());
-//        }
     }
  
-    /* Creating the Hashmap for the row */
-//    @SuppressWarnings("unchecked")
     private ArrayList<HashMap<String, String>> createGroupList() {
           ArrayList<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
-//          for( int i = 0 ; i < 15 ; ++i ) { // 15 groups........
-//            HashMap m = new HashMap();
-//            m.put( "Group Item","Group Item " + i ); // the key and it's value.
-//            result.add( m );
-//          }
           for (Class<?> c : include) {
         	  HashMap<String, String> m = new HashMap<String, String>();
         	  m.put( "Group Item" , c.getSimpleName() + " [" + TestingTools.numOf(c) + "]");
@@ -192,8 +165,6 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     		MeleeAttackOption.class,ThrownAttackOption.class, 
     		};
     
-    /* creatin the HashMap for the children */
-//    @SuppressWarnings("unchecked")
     private ArrayList<ArrayList<HashMap<String, String>>> createChildList() {
         ArrayList<ArrayList<HashMap<String, String>>> result = new ArrayList<ArrayList<HashMap<String, String>>>();
         ArrayList<ArrayList<HashMap<String, Long>>> resultLong = new ArrayList<ArrayList<HashMap<String, Long>>>();
@@ -243,16 +214,14 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
         System.out.println("onContentChanged");
         super.onContentChanged();
     }
+
     /* This function is called on each child click */
     public boolean onChildClick( ExpandableListView parent, View v, int groupPosition,int childPosition,long id) {
-//        System.out.println("Inside onChildClick at groupPosition = " + groupPosition +" Child clicked at position " + childPosition);
-    	GURPSObject go = GURPSObject.findGURPSObjectById(childListLong.get(groupPosition).get(childPosition).get("Sub Item"));
-//        Toast.makeText(MainActivity.this, 
-//        		go.getName() + ": " + go.getObjectId(), 
-//        		Toast.LENGTH_LONG).show();
-        
-    	final InformationDialog inf = new InformationDialog(MainActivity.this);
-    	inf.set(R.layout.information_dialog, go);
+    	final GURPSObject go = GURPSObject.findGURPSObjectById(childListLong.get(groupPosition).get(childPosition).get("Sub Item"));
+
+    	// generate and display the dialog box for THAT child/GURPSObject
+    	final InformationDialog inf = new InformationDialog(R.layout.information_dialog, MainActivity.this);
+    	inf.set(go);
     	inf.show();
     	
         return true;
@@ -270,7 +239,6 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 	@Override
 	protected void onPause() {
 		super.onPause();
-		finish();
 	}
 
 	@Override
@@ -286,6 +254,41 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 			updateText.run();
 			break;
 		}
+	}
+
+	@Override
+	public boolean onKey(View v, int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			confirmExit();
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	@Override
+	public void onBackPressed() {
+		confirmExit();
+	}
+	
+	private void confirmExit() {
+		final AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+		dialog.setMessage("Exit Now?");
+		dialog.setPositiveButton("Exit", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				finish();
+			}
+		});
+		dialog.setNegativeButton("Do Not Exit", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+			}
+		});
+		AlertDialog a = dialog.create();
+		a.show();
 	}
 	
 }

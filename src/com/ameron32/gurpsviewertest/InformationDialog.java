@@ -26,23 +26,28 @@ import com.ameron32.testing.ImportTesting;
 
 public class InformationDialog extends Dialog implements Dialog.OnKeyListener, Dialog.OnClickListener {
 
-	final Context context;
-	public InformationDialog(Context context) {
+	private final Context context;
+	private final int resourceId;
+	public InformationDialog(int resourceId, Context context) {
 		super(context);
 		this.context = context;
-	}
-
-	private TextView tvTitle, tvClass, tvContent, tvObjectId;
-	private Button bClose;
-	private ProgressBar pbLoading;
-	private void init() {
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(resourceId);
+		this.resourceId = resourceId;
+		
 		tvTitle = (TextView) findViewById(R.id.tvTitle);
 		tvClass = (TextView) findViewById(R.id.tvClass);
 		tvContent = (TextView) findViewById(R.id.tvContent);
 		tvObjectId = (TextView) findViewById(R.id.tvObjectId);
 		pbLoading = (ProgressBar) findViewById(R.id.pbLoading);
-		pbLoading.setMax(100);
 		bClose = (Button) findViewById(R.id.bClose);
+	}
+
+	private final TextView tvTitle, tvClass, tvContent, tvObjectId;
+	private final Button bClose;
+	private final ProgressBar pbLoading;
+	private void init() {
+		pbLoading.setMax(100);
 		bClose.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -52,9 +57,7 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 		setOnKeyListener(this);
 	}
 
-	public void set(int resourceId, GURPSObject go) {
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setContentView(resourceId);
+	public void set(final GURPSObject go) {
 		init();
 
 		tvTitle.setText(go.getName());
@@ -86,32 +89,51 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 	
 	private static final List<String> allNames = new ArrayList<String>();
 	private static final ArrayList<IIIS> spans = new ArrayList<IIIS>();
-	private void setLinkText(TextView tv, String s) {
+	private void setLinkText(TextView tv, String description) {
 		// load the link names
 		allNames.clear();
-		for (GURPSObject go : ImportTesting.getEverything()) {
+		for (final GURPSObject go : ImportTesting.getEverything()) {
 			allNames.add(go.getName());
 		}
 		
-		SpannableString ss = new SpannableString(s);
+		final SpannableString ss = new SpannableString(description);
 		
 		// analyze the string list for links
 		spans.clear();
-		for (String name : allNames) {
-			if (s.toLowerCase(Locale.ENGLISH).contains(name.toLowerCase(Locale.ENGLISH))) {
-				ClickableString clickableString = new ClickableString(new LinkListener(name), name);
-				
-				int startOfLink = s.toLowerCase(Locale.ENGLISH).indexOf(name.toLowerCase(Locale.ENGLISH));
-				int linkLength = name.length();
-				
-				ss.setSpan(clickableString, startOfLink, startOfLink + linkLength, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-				spans.add(new IIIS(startOfLink, name));
-			}
+		for (final String name : allNames) {
+			depth = 0;
+			setLinkSpan(description, name, ss, 0);
 		}
 
 		tv.setText(ss);
 		tv.setMovementMethod(LinkMovementMethod.getInstance());
 		
+	}
+	
+	private int depth = 0;
+	private void setLinkSpan(String s, String name, SpannableString ss, int startingPoint) {
+		if (s.contains(name)) {
+			final ClickableString clickableString = new ClickableString(new LinkListener(name));
+			
+			final int startOfLink = s.indexOf(name) + startingPoint;
+			final int linkLength = name.length();
+			final int endOfLink = startOfLink + linkLength;
+			
+			ss.setSpan(clickableString, startOfLink, endOfLink, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+			spans.add(new IIIS(startOfLink, name));
+			
+//			if (s.substring(endOfLink).length() >= 1) {
+//				final int offsetStart = endOfLink;
+//				final String offsetString = new String(s.substring(offsetStart));
+//
+//				if (offsetString.contains(name)) {
+//					if (depth <= 100) {
+//						depth += 1;
+//						setLinkSpan(offsetString, name, ss, offsetStart);
+//					}
+//				}
+//			}
+		}
 	}
 	
 //	View.OnClickListener ocl =
@@ -155,20 +177,13 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 	}
 	
 	private static class ClickableString extends ClickableSpan {
-	    private View.OnClickListener mListener;          
-	    public ClickableString(View.OnClickListener listener, String name) {              
+	    private final View.OnClickListener mListener;          
+	    public ClickableString(View.OnClickListener listener) {              
 	        mListener = listener;  
-	        this.name = name;
 	    }
-	    
-	    private final String name;
 	    @Override  
 	    public void onClick(View v) {  
 	        mListener.onClick(v);  
-	    }
-	    
-	    public String getName() {
-	    	return name;
 	    }
 	}
 	
@@ -180,13 +195,13 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 		
 		@Override
 		public void onClick(View v) {
-			Toast.makeText(context, name, Toast.LENGTH_LONG).show();
+//			Toast.makeText(context, name, Toast.LENGTH_LONG).show();
 			boolean found = false;
 			for (GURPSObject go : ImportTesting.getEverything()) {
 				if (!found && go.getName().equalsIgnoreCase(name)) {
 					found = true;
-			    	final InformationDialog inf = new InformationDialog(context);
-			    	inf.set(R.layout.information_dialog, go);
+			    	final InformationDialog inf = new InformationDialog(resourceId, context);
+			    	inf.set(go);
 			    	inf.show();
 				}
 			}
