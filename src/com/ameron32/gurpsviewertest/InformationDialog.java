@@ -65,9 +65,6 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 		setLinkText(tvContent, StringTools.convertBarsToParagraphs(
 				go.getDescription())
 				+ "\n" + go.getSID() + "\n" + ((go.getNotes().size() > 0) ? go.getNotes() : "[No Notes]"));
-//		tvContent.setText(StringTools.convertBarsToParagraphs(
-//				go.getDescription())
-//				+ "\n" + go.getSID() + "\n" + ((go.getNotes().size() > 0) ? go.getNotes() : "[No Notes]"));
 		tvObjectId.setText("[ " + go.getSID().trim().toUpperCase(Locale.ENGLISH) + " ]");
 	}
 	
@@ -100,9 +97,12 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 		
 		// analyze the string list for links
 		spans.clear();
-		for (final String name : allNames) {
-			depth = 0;
-			setLinkSpan(description, name, ss, 0);
+		for (String name : allNames) {
+			int cursor = 0;
+			do {
+				final String subString = description.substring(cursor);
+				cursor += setLinkSpan(new String(subString), cursor, name, ss);
+			} while (cursor < description.length());
 		}
 
 		tv.setText(ss);
@@ -110,40 +110,22 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 		
 	}
 	
-	private int depth = 0;
-	private void setLinkSpan(String s, String name, SpannableString ss, int startingPoint) {
+	private int setLinkSpan(String s, int startingPosition, String name, SpannableString ss) {
 		if (s.contains(name)) {
 			final ClickableString clickableString = new ClickableString(new LinkListener(name));
 			
-			final int startOfLink = s.indexOf(name) + startingPoint;
+			final int startOfLink = s.indexOf(name) + startingPosition;
 			final int linkLength = name.length();
 			final int endOfLink = startOfLink + linkLength;
 			
 			ss.setSpan(clickableString, startOfLink, endOfLink, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 			spans.add(new IIIS(startOfLink, name));
 			
-//			if (s.substring(endOfLink).length() >= 1) {
-//				final int offsetStart = endOfLink;
-//				final String offsetString = new String(s.substring(offsetStart));
-//
-//				if (offsetString.contains(name)) {
-//					if (depth <= 100) {
-//						depth += 1;
-//						setLinkSpan(offsetString, name, ss, offsetStart);
-//					}
-//				}
-//			}
+			return endOfLink;
+		} else {
+			return s.length();
 		}
 	}
-	
-//	View.OnClickListener ocl =
-			
-//			new View.OnClickListener() {
-//		@Override
-//		public void onClick(View v) {
-//			Toast.makeText(context, "Click", Toast.LENGTH_LONG).show();
-//		}
-//	};
 	
 	private class IIIS {
 		private final int start;
