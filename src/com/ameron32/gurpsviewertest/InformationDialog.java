@@ -98,43 +98,28 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 		// analyze the string list for links
 		spans.clear();
 		for (String name : allNames) {
-			final String  toastName = name;
 			if (s.toLowerCase(Locale.ENGLISH).contains(name.toLowerCase(Locale.ENGLISH))) {
-				ClickableSpan clickableSpan = new ClickableSpan() {
-					@Override
-					public void onClick(View widget) {
-						Toast.makeText(context, toastName, Toast.LENGTH_LONG).show();
-					}
-				};
+				ClickableString clickableString = new ClickableString(new LinkListener(name), name);
 				
-				int startOfLink = s.indexOf(name);
+				int startOfLink = s.toLowerCase(Locale.ENGLISH).indexOf(name.toLowerCase(Locale.ENGLISH));
 				int linkLength = name.length();
 				
-				ss.setSpan(clickableSpan, startOfLink, startOfLink + linkLength, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+				ss.setSpan(clickableString, startOfLink, startOfLink + linkLength, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 				spans.add(new IIIS(startOfLink, name));
 			}
 		}
 
 		tv.setText(ss);
-//		int lastStop = 0;
-//		for (IIIS iiis : spans) {
-//			// assume there is a gap in between each link
-//			int start = iiis.getStart();
-//			if (start > lastStop) {
-//				
-//			} else if (start == lastStop) {
-//				
-//			}
-//			lastStop = iiis.getEnd();
-//		}
 		tv.setMovementMethod(LinkMovementMethod.getInstance());
 		
 	}
 	
-//	View.OnClickListener ocl = new View.OnClickListener() {
+//	View.OnClickListener ocl =
+			
+//			new View.OnClickListener() {
 //		@Override
 //		public void onClick(View v) {
-//
+//			Toast.makeText(context, "Click", Toast.LENGTH_LONG).show();
 //		}
 //	};
 	
@@ -169,22 +154,44 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 
 	}
 	
-//	private static class ClickableString extends ClickableSpan {
-//	    private View.OnClickListener mListener;          
-//	    public ClickableString(View.OnClickListener listener, String name) {              
-//	        mListener = listener;  
-//	        this.name = name;
-//	    }
-//	    
-//	    private final String name;
-//	    @Override  
-//	    public void onClick(View v) {  
-//	        mListener.onClick(v);  
-//	    }
-//	    
-//	    public String getName() {
-//	    	return name;
-//	    }
-//	}
+	private static class ClickableString extends ClickableSpan {
+	    private View.OnClickListener mListener;          
+	    public ClickableString(View.OnClickListener listener, String name) {              
+	        mListener = listener;  
+	        this.name = name;
+	    }
+	    
+	    private final String name;
+	    @Override  
+	    public void onClick(View v) {  
+	        mListener.onClick(v);  
+	    }
+	    
+	    public String getName() {
+	    	return name;
+	    }
+	}
+	
+	private class LinkListener implements View.OnClickListener {
+		String name;
+		public LinkListener(String name) {
+			this.name = name;
+		}
+		
+		@Override
+		public void onClick(View v) {
+			Toast.makeText(context, name, Toast.LENGTH_LONG).show();
+			boolean found = false;
+			for (GURPSObject go : ImportTesting.getEverything()) {
+				if (!found && go.getName().equalsIgnoreCase(name)) {
+					found = true;
+			    	final InformationDialog inf = new InformationDialog(context);
+			    	inf.set(R.layout.information_dialog, go);
+			    	inf.show();
+				}
+			}
+		}
+		
+	}
 
 }
