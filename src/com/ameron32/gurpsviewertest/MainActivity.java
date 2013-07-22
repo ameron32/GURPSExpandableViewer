@@ -20,6 +20,7 @@ import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.SimpleExpandableListAdapter;
 
 import com.ameron32.libcharacter.library.PersonalityTrait;
+import com.ameron32.libgurps.References;
 import com.ameron32.libgurps.attackoptions.MeleeAttackOption;
 import com.ameron32.libgurps.attackoptions.ThrownAttackOption;
 import com.ameron32.libgurps.character.stats.Advantage;
@@ -41,11 +42,14 @@ import com.ameron32.testing.TestingTools;
 public class MainActivity extends Activity implements OnChildClickListener, OnClickListener, OnKeyListener {
 
     ImportTesting it;
-    private final String downloadDir = 
+    private static final String downloadDir = 
     		"https://dl.dropboxusercontent.com/u/949753/GURPS/GURPSBuilder/" 
     		+ ImportTesting.getVERSION() + "/";
-    private final String sdDir = Environment.getExternalStorageDirectory()
+    private static final String sdDir = Environment.getExternalStorageDirectory()
             .getPath() + "/ameron32projects/GURPSBattleFlow/";
+    public static String getSDDir() {
+    	return sdDir;
+    }
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -81,9 +85,21 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     
     private void download() {
         String[] fileNames = ImportTesting.getAllFilenames();
+        
+		// cheat to convert the fileNames for references on the file to the
+		// right fileName
+//        for (int n = 0; n < fileNames.length; n++) {
+//        	for (String[] file : References.getReferences())
+//        		if (fileNames[n].equalsIgnoreCase(file[2])) {
+//        			fileNames[n] = file[3];
+//        		}
+//        }
         String[] downloadLocations = fileNames.clone();
+
+    	// add download directory to standalone filenames, if needed
         for (int i = 0; i < downloadLocations.length; i++) {
-            downloadLocations[i] = downloadDir + downloadLocations[i];
+        	if (!downloadLocations[i].substring(0,3).equalsIgnoreCase("http"))
+        		downloadLocations[i] = downloadDir + downloadLocations[i];
         }
         downloadAssets(null, fileNames, true, downloadLocations);
     }
@@ -113,15 +129,6 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
         d.execute(sUrl);
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     
@@ -220,7 +227,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     	final GURPSObject go = GURPSObject.findGURPSObjectById(childListLong.get(groupPosition).get(childPosition).get("Sub Item"));
 
     	// generate and display the dialog box for THAT child/GURPSObject
-    	final InformationDialog inf = new InformationDialog(R.layout.information_dialog, MainActivity.this);
+    	final InformationDialog inf = new InformationDialog(R.layout.information_dialog, MainActivity.this, this);
     	inf.set(go);
     	inf.show();
     	

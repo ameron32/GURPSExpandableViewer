@@ -58,7 +58,6 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 	protected String doInBackground(String... sUrl) {
 		File fDF;
 		for (short u = 0; u < sUrl.length; u++) {
-
 			fDF = new File(dlDir + dlFiles[u]);
 			if ((!fDF.exists()) || (fDF.exists() && isUpdate)) {
 				complete = false;

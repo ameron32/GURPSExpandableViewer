@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,17 +21,22 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ameron32.libgurps.character.stats.Advantage;
+import com.ameron32.libgurps.character.stats.Skill;
 import com.ameron32.libgurps.impl.GURPSObject;
+import com.ameron32.libgurps.tools.ActivityTools;
 import com.ameron32.libgurps.tools.StringTools;
 import com.ameron32.testing.ImportTesting;
 
 public class InformationDialog extends Dialog implements Dialog.OnKeyListener, Dialog.OnClickListener {
 
+	private final Activity a;
 	private final Context context;
 	private final int resourceId;
-	public InformationDialog(int resourceId, Context context) {
+	public InformationDialog(int resourceId, Context context, Activity a) {
 		super(context);
 		this.context = context;
+		this.a = a;
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(resourceId);
 		this.resourceId = resourceId;
@@ -39,11 +45,12 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 		tvClass = (TextView) findViewById(R.id.tvClass);
 		tvContent = (TextView) findViewById(R.id.tvContent);
 		tvObjectId = (TextView) findViewById(R.id.tvObjectId);
+		tvPage = (TextView) findViewById(R.id.tvPage);
 		pbLoading = (ProgressBar) findViewById(R.id.pbLoading);
 		bClose = (Button) findViewById(R.id.bClose);
 	}
 
-	private final TextView tvTitle, tvClass, tvContent, tvObjectId;
+	private final TextView tvTitle, tvClass, tvContent, tvObjectId, tvPage;
 	private final Button bClose;
 	private final ProgressBar pbLoading;
 	private void init() {
@@ -66,6 +73,19 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 	public void set(final GURPSObject go) {
 		init();
 
+		if (go instanceof Advantage || go instanceof Skill) {
+			String pageNumber = "";
+			if (go instanceof Advantage) {
+				pageNumber = ((Advantage) go).getiPage() + "";
+			} else if (go instanceof Skill) {
+				pageNumber = ((Skill) go).getiPage() + "";
+			}
+			tvPage.setText(pageNumber);
+			tvPage.setOnClickListener(new PageLinkListener(go));
+		} else {
+			tvPage.setText("No Page");
+		}
+		
 		tvTitle.setText(go.getName());
 		tvClass.setText(go.getClass().getSimpleName());
 		setLinkText(tvContent, StringTools.convertBarsToParagraphs(
@@ -118,7 +138,7 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 	
 	private int setLinkSpan(String s, int startingPosition, String name, SpannableString ss) {
 		if (s.contains(name)) {
-			final ClickableString clickableString = new ClickableString(new LinkListener(name));
+			final ClickableString clickableString = new ClickableString(new ReferenceLinkListener(name));
 			
 			final int startOfLink = s.indexOf(name) + startingPosition;
 			final int linkLength = name.length();
@@ -175,9 +195,9 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 	    }
 	}
 	
-	private class LinkListener implements View.OnClickListener {
+	private class ReferenceLinkListener implements View.OnClickListener {
 		String name;
-		public LinkListener(String name) {
+		public ReferenceLinkListener(String name) {
 			this.name = name;
 		}
 		
@@ -188,7 +208,7 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 			for (GURPSObject go : ImportTesting.getEverything()) {
 				if (!found && go.getName().equalsIgnoreCase(name)) {
 					found = true;
-			    	final InformationDialog inf = new InformationDialog(resourceId, context);
+			    	final InformationDialog inf = new InformationDialog(resourceId, context, a);
 			    	inf.set(go);
 			    	inf.show();
 				}
@@ -196,5 +216,31 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 		}
 		
 	}
+	
+	public class PageLinkListener implements View.OnClickListener {
 
+		final GURPSObject go;
+		public PageLinkListener(GURPSObject go) {
+			this.go = go;
+		}
+		
+		@Override
+		public void onClick(View v) {
+			
+			// TODO change to dynamic
+			if (go instanceof Advantage) {
+				Advantage adv = (Advantage) go;
+				String book = (adv.getDocumentSource().equals("BasicSet")) ? "B" : "";
+				String pageNumber = adv.getiPage() + "";
+				
+				new ActivityTools(a, MainActivity.getSDDir()).openInPDF(book, pageNumber);;
+			} else if (go instanceof Skill) {
+				Skill sk = (Skill) go;
+				String book = (sk.getDocumentSource().equals("BasicSet")) ? "B" : "";
+				String pageNumber = sk.getiPage() + "";
+				
+				new ActivityTools(a, MainActivity.getSDDir()).openInPDF(book, pageNumber);;
+			}
+		}
+	}
 }
