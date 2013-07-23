@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.Editable;
@@ -23,6 +24,8 @@ import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.SimpleExpandableListAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ameron32.libcharacter.library.PersonalityTrait;
 import com.ameron32.libgurps.References;
@@ -77,6 +80,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 	ExpandableListView elv;
 	Button bDownload, bUpdate, bLoad, bRefine;
 	EditText etQuery;
+	TextView tvInstructions;
 	private void init() {
 		elv = (ExpandableListView) findViewById(R.id.expandableListView1);
 		elv.setOnChildClickListener(this);
@@ -92,6 +96,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		etQuery = (EditText) findViewById(R.id.etQuery);
 		etQuery.setOnClickListener(this);
 		etQuery.addTextChangedListener(tcl);
+		tvInstructions = (TextView) findViewById(R.id.tvInstructions);
 		etQuery.setVisibility(View.INVISIBLE);
 	}
 
@@ -143,9 +148,9 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     
     
     private ArrayList<HashMap<String, String>> groupList;
-    private ArrayList<ArrayList<HashMap<String, String>>> childList;
-    private ArrayList<ArrayList<HashMap<String, Long>>> childListLong;
-    private SimpleExpandableListAdapter expListAdapter;
+    private ArrayList<ArrayList<HashMap<String, GURPSObject>>> childList;
+//    private ArrayList<ArrayList<HashMap<String, Long>>> childListLong;
+    private GURPSLibraryAdapter expListAdapter;
     private ArrayList<HashMap<String, String>> createGroupList() {
           ArrayList<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
           for (Class<?> c : include) {
@@ -166,19 +171,19 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     		MeleeAttackOption.class,ThrownAttackOption.class, 
     		};
     
-    private ArrayList<ArrayList<HashMap<String, String>>> createChildList() {
-        ArrayList<ArrayList<HashMap<String, String>>> result = new ArrayList<ArrayList<HashMap<String, String>>>();
-        ArrayList<ArrayList<HashMap<String, Long>>> resultLong = new ArrayList<ArrayList<HashMap<String, Long>>>();
+    private ArrayList<ArrayList<HashMap<String, GURPSObject>>> createChildList() {
+        ArrayList<ArrayList<HashMap<String, GURPSObject>>> result = new ArrayList<ArrayList<HashMap<String, GURPSObject>>>();
+//        ArrayList<ArrayList<HashMap<String, Long>>> resultLong = new ArrayList<ArrayList<HashMap<String, Long>>>();
         
         // prepare a placeholder for each group
 		for (int i = 0; i < include.length; i++) {
-			result.add(new ArrayList<HashMap<String, String>>());
-			resultLong.add(new ArrayList<HashMap<String, Long>>());
+			result.add(new ArrayList<HashMap<String, GURPSObject>>());
+//			resultLong.add(new ArrayList<HashMap<String, Long>>());
 		}
         
 		Class<?>[] excludes = ImportTesting.getExcludes();
 		int excludesLength = excludes.length;
-        for (GURPSObject go : ImportTesting.getEverything()) {
+        for (final GURPSObject go : ImportTesting.getEverything()) {
 			// determine whether to exclude this object
         	boolean exclude = false;
 			if (excludesLength != 0) {
@@ -195,20 +200,20 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 					if (include[x].isInstance(go) 
 							&& include[x].getSimpleName().equals(go.getClass().getSimpleName())) {
 						// add the item to the list
-						HashMap<String, String> entry = new HashMap<String, String>();
-						HashMap<String, Long> entryLong = new HashMap<String, Long>();
-						entry.put("Sub Item", go.getName());
-						entryLong.put("Sub Item", go.getObjectId());
+						HashMap<String, GURPSObject> entry = new HashMap<String, GURPSObject>();
+//						HashMap<String, Long> entryLong = new HashMap<String, Long>();
+						entry.put("Sub Item", go);
+//						entryLong.put("Sub Item", go.getObjectId());
 
 						result.get(x).add(entry);
-						resultLong.get(x).add(entryLong);
+//						resultLong.get(x).add(entryLong);
 					}
 				}
 			}
 
 		}
         
-        childListLong = resultLong;
+//        childListLong = resultLong;
         return result;
     }
     
@@ -238,19 +243,20 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     
     private void clearChildList() {
     	childList.clear();
-    	childListLong.clear();
+//    	childListLong.clear();
     }
     
-    private void addToChildList(String query, ArrayList<ArrayList<HashMap<String, String>>> child, ArrayList<ArrayList<HashMap<String, Long>>> childLong) {
+	private final ArrayList<ArrayList<HashMap<String, GURPSObject>>> removeThese = new ArrayList<ArrayList<HashMap<String, GURPSObject>>>();
+    private void addToChildList(String query, ArrayList<ArrayList<HashMap<String, GURPSObject>>> child) {
     	// prepare a placeholder for each group
 		for (int i = 0; i < include.length; i++) {
-			child.add(new ArrayList<HashMap<String, String>>());
-			childLong.add(new ArrayList<HashMap<String, Long>>());
+			child.add(new ArrayList<HashMap<String, GURPSObject>>());
+//			childLong.add(new ArrayList<HashMap<String, Long>>());
 		}
 
 		Class<?>[] excludes = ImportTesting.getExcludes();
 		int excludesLength = excludes.length;
-		for (GURPSObject go : ImportTesting.getEverything()) {
+		for (final GURPSObject go : ImportTesting.getEverything()) {
 			// determine whether to exclude this object
 			boolean exclude = false;
 			if (excludesLength != 0) {
@@ -262,9 +268,15 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 			
 			/* TEST searchQuery */
 			if (!query.equals("")) {
-				if (!go.getName().toLowerCase(Locale.ENGLISH)
-						.contains(query.toLowerCase(Locale.ENGLISH))) {
-					exclude = true;
+				String[] queryA = new String[] { query };
+				if (query.contains(" ")){
+					queryA = query.split(" ",10);
+				}
+				for (String q : queryA) {
+					if (!go.getName().toLowerCase(Locale.ENGLISH)
+							.contains(q.toLowerCase(Locale.ENGLISH))) {
+						exclude = true;
+					}
 				}
 			}
 
@@ -277,26 +289,33 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 							&& include[x].getSimpleName().equals(
 									go.getClass().getSimpleName())) {
 						// add the item to the list
-						HashMap<String, String> entry = new HashMap<String, String>();
-						HashMap<String, Long> entryLong = new HashMap<String, Long>();
-						entry.put("Sub Item", go.getName());
-						entryLong.put("Sub Item", go.getObjectId());
+						HashMap<String, GURPSObject> entry = new HashMap<String, GURPSObject>();
+//						HashMap<String, Long> entryLong = new HashMap<String, Long>();
+						entry.put("Sub Item", go);
+//						entryLong.put("Sub Item", go.getObjectId());
 
 						child.get(x).add(entry);
-						childLong.get(x).add(entryLong);
+//						childLong.get(x).add(entryLong);
 					}
 				}
 			}
 		}
 		
+		removeThese.clear();
 		for (int j = 0; j < include.length; j++) {
-			if (child.get(j).isEmpty()) removeGroup(j);
+			if (child.get(j).isEmpty()) {
+				removeThese.add(child.get(j));
+				removeGroup(j);
+			}
+		}
+		for (ArrayList<HashMap<String, GURPSObject>> r : removeThese) {
+			child.remove(r);
 		}
     }
 
     /* This function is called on each child click */
     public boolean onChildClick( ExpandableListView parent, View v, int groupPosition,int childPosition,long id) {
-    	final GURPSObject go = GURPSObject.findGURPSObjectById(childListLong.get(groupPosition).get(childPosition).get("Sub Item"));
+    	final GURPSObject go = GURPSObject.findGURPSObjectById(childList.get(groupPosition).get(childPosition).get("Sub Item").getObjectId());
 
     	// generate and display the dialog box for THAT child/GURPSObject
     	final InformationDialog inf = new InformationDialog(R.layout.information_dialog, MainActivity.this, this);
@@ -332,6 +351,10 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 			bLoad.setVisibility(View.GONE);
 			bDownload.setVisibility(View.GONE);
 			bUpdate.setVisibility(View.GONE);
+			tvInstructions.setVisibility(View.GONE);
+			
+			MainActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+			Toast.makeText(MainActivity.this, "rotation unlocked", Toast.LENGTH_LONG).show();
 			
 			break;
 		case R.id.bRefine:
@@ -356,7 +379,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 	private void createELA() {
 		groupList = createGroupList();
 		childList = createChildList();
-		expListAdapter = new SimpleExpandableListAdapter(
+		expListAdapter = new GURPSLibraryAdapter(
 				this, 
 				groupList,
 				R.layout.group_row,
@@ -381,7 +404,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		String query = e.toString().trim();
 		
 		// process query
-		addToChildList(query, childList, childListLong);
+		addToChildList(query, childList);
 		addToGroupList(groupList);
 		
 		// update view
@@ -462,5 +485,4 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		return false;
 	}
 
-	
 }
