@@ -2,6 +2,7 @@ package com.ameron32.gurpsviewertest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -9,12 +10,16 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.SimpleExpandableListAdapter;
@@ -56,11 +61,22 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		init();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
 		start();
 	}
 
+	@Override
+	protected void onPause() {
+		super.onPause();
+	}
+
 	ExpandableListView elv;
-	Button bDownload, bUpdate, bLoad;
+	Button bDownload, bUpdate, bLoad, bRefine;
+	EditText etQuery;
 	private void init() {
 		elv = (ExpandableListView) findViewById(R.id.expandableListView1);
 		elv.setOnChildClickListener(this);
@@ -70,6 +86,13 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		bUpdate.setOnClickListener(this);
 		bLoad = (Button) findViewById(R.id.bLoad);
 		bLoad.setOnClickListener(this);
+		bRefine = (Button) findViewById(R.id.bRefine);
+		bRefine.setOnClickListener(this);
+		bRefine.setVisibility(View.INVISIBLE);
+		etQuery = (EditText) findViewById(R.id.etQuery);
+		etQuery.setOnClickListener(this);
+		etQuery.addTextChangedListener(tcl);
+		etQuery.setVisibility(View.INVISIBLE);
 	}
 
 	@Override
@@ -104,19 +127,6 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
         downloadAssets(null, fileNames, true, downloadLocations);
     }
     
-    Runnable updateText = new Runnable() {
-		@Override
-		public void run() {
-			createELA();
-		}
-	};
-	Runnable importAndLoad = new Runnable() {
-		@Override
-		public void run() {
-        	new ProgressMonitor(MainActivity.this, it, null).execute();
-		}
-	};
-	
     private void downloadAssets(String dlDir, String[] fileNames,
             boolean update, String[] sUrl) {
         // execute this when the downloader must be fired
@@ -136,22 +146,6 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     private ArrayList<ArrayList<HashMap<String, String>>> childList;
     private ArrayList<ArrayList<HashMap<String, Long>>> childListLong;
     private SimpleExpandableListAdapter expListAdapter;
-    private void createELA() {
-    	groupList = createGroupList();
-    	childList = createChildList();
- 		expListAdapter = new SimpleExpandableListAdapter(this, 
-				groupList,
-				R.layout.group_row,
-				new String[] { "Group Item" },
-				new int[] { R.id.row_name },
-				childList,
-				R.layout.child_row,
-				new String[] { "Sub Item" },
-				new int[] { R.id.grp_child }
-				);
-        elv.setAdapter(expListAdapter);
-    }
- 
     private ArrayList<HashMap<String, String>> createGroupList() {
           ArrayList<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
           for (Class<?> c : include) {
@@ -193,7 +187,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 						exclude = true;
 				}
 			}
-
+			
 			if (!exclude) {
 				// put the object into the proper group(s)
 				for (int x = 0; x < include.length; x++) {
@@ -217,9 +211,87 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
         childListLong = resultLong;
         return result;
     }
-    public void onContentChanged  () {
-        System.out.println("onContentChanged");
-        super.onContentChanged();
+    
+    private void clearGroupList() {
+    	groupList.clear();
+    }
+    
+    private void addToGroupList(ArrayList<HashMap<String, String>> group) {
+		for (int i = 0; i < include.length; i++) {
+			boolean exclude = false;
+			for (Integer x : emptys) {
+				if (x.intValue() == i) {
+					exclude = true;
+				}
+			}
+			if (!exclude) {
+				HashMap<String, String> m = new HashMap<String, String>();
+				m.put("Group Item", include[i].getSimpleName());
+				group.add(m);
+			}
+		}
+    }
+    
+    private void removeGroup(int groupNumber) {
+		emptys.add(groupNumber);
+    }
+    
+    private void clearChildList() {
+    	childList.clear();
+    	childListLong.clear();
+    }
+    
+    private void addToChildList(String query, ArrayList<ArrayList<HashMap<String, String>>> child, ArrayList<ArrayList<HashMap<String, Long>>> childLong) {
+    	// prepare a placeholder for each group
+		for (int i = 0; i < include.length; i++) {
+			child.add(new ArrayList<HashMap<String, String>>());
+			childLong.add(new ArrayList<HashMap<String, Long>>());
+		}
+
+		Class<?>[] excludes = ImportTesting.getExcludes();
+		int excludesLength = excludes.length;
+		for (GURPSObject go : ImportTesting.getEverything()) {
+			// determine whether to exclude this object
+			boolean exclude = false;
+			if (excludesLength != 0) {
+				for (Class<?> c2 : excludes) {
+					if (c2.isInstance(go))
+						exclude = true;
+				}
+			}
+			
+			/* TEST searchQuery */
+			if (!query.equals("")) {
+				if (!go.getName().toLowerCase(Locale.ENGLISH)
+						.contains(query.toLowerCase(Locale.ENGLISH))) {
+					exclude = true;
+				}
+			}
+
+			if (!exclude) {
+				// put the object into the proper group(s)
+				for (int x = 0; x < include.length; x++) {
+					// verify that the object is of a special class, and not
+					// inheriting that class
+					if (include[x].isInstance(go)
+							&& include[x].getSimpleName().equals(
+									go.getClass().getSimpleName())) {
+						// add the item to the list
+						HashMap<String, String> entry = new HashMap<String, String>();
+						HashMap<String, Long> entryLong = new HashMap<String, Long>();
+						entry.put("Sub Item", go.getName());
+						entryLong.put("Sub Item", go.getObjectId());
+
+						child.get(x).add(entry);
+						childLong.get(x).add(entryLong);
+					}
+				}
+			}
+		}
+		
+		for (int j = 0; j < include.length; j++) {
+			if (child.get(j).isEmpty()) removeGroup(j);
+		}
     }
 
     /* This function is called on each child click */
@@ -244,11 +316,6 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     }
 
 	@Override
-	protected void onPause() {
-		super.onPause();
-	}
-
-	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.bDownload:
@@ -259,8 +326,66 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 			break;
 		case R.id.bLoad:
 			updateText.run();
+			
+			etQuery.setVisibility(View.VISIBLE);
+			bRefine.setVisibility(View.VISIBLE);
+			bLoad.setVisibility(View.GONE);
+			bDownload.setVisibility(View.GONE);
+			bUpdate.setVisibility(View.GONE);
+			
+			break;
+		case R.id.bRefine:
+			refineData(etQuery.getText());
 			break;
 		}
+	}
+
+	Runnable importAndLoad = new Runnable() {
+		@Override
+		public void run() {
+	    	new ProgressMonitor(MainActivity.this, it, null).execute();
+		}
+	};
+	Runnable updateText = new Runnable() {
+		@Override
+		public void run() {
+			createELA();
+		}
+	};
+	
+	private void createELA() {
+		groupList = createGroupList();
+		childList = createChildList();
+		expListAdapter = new SimpleExpandableListAdapter(
+				this, 
+				groupList,
+				R.layout.group_row,
+				new String[] { "Group Item" },
+				new int[] { R.id.row_name },
+				childList,
+				R.layout.child_row,
+				new String[] { "Sub Item" },
+				new int[] { R.id.grp_child }
+				);
+	    elv.setAdapter(expListAdapter);
+	}
+	
+	private final ArrayList<Integer> emptys = new ArrayList<Integer>();
+	private void refineData(Editable e) {
+		// reset info
+		clearGroupList();
+		clearChildList();
+		emptys.clear();
+		
+		// get query
+		String query = e.toString().trim();
+		
+		// process query
+		addToChildList(query, childList, childListLong);
+		addToGroupList(groupList);
+		
+		// update view
+		expListAdapter.notifyDataSetChanged();
 	}
 
 	@Override
@@ -297,5 +422,45 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		AlertDialog a = dialog.create();
 		a.show();
 	}
+	
+	TextWatcher tcl = new TextWatcher() {
+		@Override
+		public void onTextChanged(CharSequence s, int start, int before, int count) {}
+		
+		@Override
+		public void beforeTextChanged(CharSequence s, int start, int count,	int after) {}
+		
+		@Override
+		public void afterTextChanged(Editable s) {
+			refineData(s);
+		}
+	};
+	
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.i_menu_download:
+			download();
+			break;
+		case R.id.i_menu_update:
+			importAndLoad.run();
+			break;
+		case R.id.i_menu_load:
+			updateText.run();
+
+			etQuery.setVisibility(View.VISIBLE);
+			bRefine.setVisibility(View.VISIBLE);
+			bLoad.setVisibility(View.GONE);
+			bDownload.setVisibility(View.GONE);
+			bUpdate.setVisibility(View.GONE);
+			break;
+		case R.id.i_menu_exit:
+			confirmExit();
+			break;
+		}
+		
+		return false;
+	}
+
 	
 }

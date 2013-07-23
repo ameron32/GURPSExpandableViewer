@@ -31,12 +31,36 @@
 	    android:layout_alignParentTop="true"
 	    android:layout_toRightOf="@+id/bUpdate"
 	    android:text="Load" />
-        
-    <ExpandableListView
+	
+	<Button
+        android:id="@+id/bRefine"
+                style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/bDownload"
+        android:layout_alignRight="@+id/expandableListView1"
+        android:text="Refine" />
+	
+	<EditText
+        android:id="@+id/etQuery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/bRefine"
+        android:layout_alignBottom="@+id/bRefine"
+        android:ems="10" >
+
+        <requestFocus />
+    </EditText>
+
+	<ExpandableListView
         android:id="@+id/expandableListView1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/bDownload"
+        android:layout_below="@+id/etQuery"
         android:layout_alignParentLeft="true" />
+
+
+
+
 
 </RelativeLayout>
