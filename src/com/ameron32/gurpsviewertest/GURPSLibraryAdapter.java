@@ -19,11 +19,9 @@ public class GURPSLibraryAdapter extends SimpleExpandableListAdapter {
 	 * @param unconverted List<List<Map<S,GO>>>
 	 * @return completed conversion
 	 */
-	private static 
-	final ArrayList<ArrayList<HashMap<String, String>>> convertChildData(
-			final ArrayList<ArrayList<HashMap<String, GURPSObject>>> feedData) {
+	private static final ArrayList<ArrayList<HashMap<String, String>>> convertChildData() {
 		revisedChildData.clear();
-		for (final ArrayList<HashMap<String, GURPSObject>> a : feedData) {
+		for (final ArrayList<HashMap<String, GURPSObject>> a : childData) {
 			ArrayList<HashMap<String, String>> revisedA = new ArrayList<HashMap<String, String>>();
 			revisedChildData.add(revisedA);
 			for (final HashMap<String, GURPSObject> b : a) {
@@ -53,6 +51,7 @@ public class GURPSLibraryAdapter extends SimpleExpandableListAdapter {
 				groupFrom, groupTo, revisedChildData, childLayout, childFrom, childTo);
 		groupData.addAll(loadGroupData);
 		childData.addAll(loadChildData);
+		convertChildData();
 	}
 
 	private static final ArrayList<HashMap<String, String>> groupData =
