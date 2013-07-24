@@ -219,6 +219,8 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     
     private void clearGroupList() {
     	groupList.clear();
+    	
+/**/	expListAdapter.clear();
     }
     
     private void addToGroupList(ArrayList<HashMap<String, String>> group) {
@@ -233,23 +235,30 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 				HashMap<String, String> m = new HashMap<String, String>();
 				m.put("Group Item", include[i].getSimpleName());
 				group.add(m);
+				
+				expListAdapter.addGroup(include[i]);
 			}
 		}
     }
     
     private void removeGroup(int groupNumber) {
 		emptys.add(groupNumber);
+		
+///**/	expListAdapter.removeGroup(groupNumber);
     }
     
     private void clearChildList() {
     	childList.clear();
 //    	childListLong.clear();
+    	
+/**/    expListAdapter.clear();	
     }
     
 	private final ArrayList<ArrayList<HashMap<String, GURPSObject>>> removeThese = new ArrayList<ArrayList<HashMap<String, GURPSObject>>>();
     private void addToChildList(String query, ArrayList<ArrayList<HashMap<String, GURPSObject>>> child) {
     	// prepare a placeholder for each group
 		for (int i = 0; i < include.length; i++) {
+/**/		expListAdapter.addGroup();
 			child.add(new ArrayList<HashMap<String, GURPSObject>>());
 //			childLong.add(new ArrayList<HashMap<String, Long>>());
 		}
@@ -296,6 +305,8 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 
 						child.get(x).add(entry);
 //						childLong.get(x).add(entryLong);
+						
+/**/					expListAdapter.addChild(x, go);
 					}
 				}
 			}
@@ -306,6 +317,8 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 			if (child.get(j).isEmpty()) {
 				removeThese.add(child.get(j));
 				removeGroup(j);
+				
+/**/			expListAdapter.removeEmptyChilds();
 			}
 		}
 		for (ArrayList<HashMap<String, GURPSObject>> r : removeThese) {
@@ -314,8 +327,10 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     }
 
     /* This function is called on each child click */
-    public boolean onChildClick( ExpandableListView parent, View v, int groupPosition,int childPosition,long id) {
-    	final GURPSObject go = GURPSObject.findGURPSObjectById(childList.get(groupPosition).get(childPosition).get("Sub Item").getObjectId());
+    public boolean onChildClick( ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+    	
+    	final GURPSObject go = GURPSObject.findGURPSObjectById(expListAdapter.getChildData(groupPosition, childPosition).getObjectId());
+//    	final GURPSObject go = GURPSObject.findGURPSObjectById(childList.get(groupPosition).get(childPosition).get("Sub Item").getObjectId());
 
     	// generate and display the dialog box for THAT child/GURPSObject
     	final InformationDialog inf = new InformationDialog(R.layout.information_dialog, MainActivity.this, this);
