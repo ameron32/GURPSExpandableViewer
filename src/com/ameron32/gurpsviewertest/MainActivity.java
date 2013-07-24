@@ -147,8 +147,8 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     
     
     
-    private ArrayList<HashMap<String, String>> groupList;
-    private ArrayList<ArrayList<HashMap<String, GURPSObject>>> childList;
+//    private ArrayList<HashMap<String, String>> groupList;
+//    private ArrayList<ArrayList<HashMap<String, GURPSObject>>> childList;
 //    private ArrayList<ArrayList<HashMap<String, Long>>> childListLong;
     private GURPSLibraryAdapter expListAdapter;
     private ArrayList<HashMap<String, String>> createGroupList() {
@@ -218,7 +218,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     }
     
     private void clearGroupList() {
-    	groupList.clear();
+//    	groupList.clear();
     	
 /**/	expListAdapter.clear();
     }
@@ -226,11 +226,11 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     private void addToGroupList(ArrayList<HashMap<String, String>> group) {
 		for (int i = 0; i < include.length; i++) {
 			boolean exclude = false;
-			for (Integer x : emptys) {
-				if (x.intValue() == i) {
-					exclude = true;
-				}
-			}
+//			for (Integer x : emptys) {
+//				if (x.intValue() == i) {
+//					exclude = true;
+//				}
+//			}
 			if (!exclude) {
 				HashMap<String, String> m = new HashMap<String, String>();
 				m.put("Group Item", include[i].getSimpleName());
@@ -242,13 +242,13 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     }
     
     private void removeGroup(int groupNumber) {
-		emptys.add(groupNumber);
+//		emptys.add(groupNumber);
 		
-///**/	expListAdapter.removeGroup(groupNumber);
+/**/	expListAdapter.removeGroup(groupNumber);
     }
     
     private void clearChildList() {
-    	childList.clear();
+//    	childList.clear();
 //    	childListLong.clear();
     	
 /**/    expListAdapter.clear();	
@@ -258,7 +258,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     private void addToChildList(String query, ArrayList<ArrayList<HashMap<String, GURPSObject>>> child) {
     	// prepare a placeholder for each group
 		for (int i = 0; i < include.length; i++) {
-/**/		expListAdapter.addGroup();
+/**/		expListAdapter.addGroup(include[i]);
 			child.add(new ArrayList<HashMap<String, GURPSObject>>());
 //			childLong.add(new ArrayList<HashMap<String, Long>>());
 		}
@@ -318,12 +318,14 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 				removeThese.add(child.get(j));
 				removeGroup(j);
 				
-/**/			expListAdapter.removeEmptyChilds();
+
 			}
 		}
 		for (ArrayList<HashMap<String, GURPSObject>> r : removeThese) {
 			child.remove(r);
 		}
+		
+/**/	expListAdapter.removeEmptyGroups();
     }
 
     /* This function is called on each child click */
@@ -391,9 +393,12 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		}
 	};
 	
-	private void createELA() {
-		groupList = createGroupList();
-		childList = createChildList();
+	private void createELA() { // create 
+		ArrayList<HashMap<String, String>> 
+			groupList = createGroupList();
+		ArrayList<ArrayList<HashMap<String, GURPSObject>>> 
+			childList = createChildList();
+		
 		expListAdapter = new GURPSLibraryAdapter(
 				this, 
 				groupList,
@@ -406,21 +411,25 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 				new int[] { R.id.grp_child }
 				);
 	    elv.setAdapter(expListAdapter);
+	    //addToGroupList//addToChildList
 	}
 	
-	private final ArrayList<Integer> emptys = new ArrayList<Integer>();
+//	private final ArrayList<Integer> emptys = new ArrayList<Integer>();
 	private void refineData(Editable e) {
 		// reset info
 		clearGroupList();
 		clearChildList();
-		emptys.clear();
+//		emptys.clear();
+		expListAdapter.clear();
 		
 		// get query
 		String query = e.toString().trim();
 		
 		// process query
-		addToChildList(query, childList);
-		addToGroupList(groupList);
+		addToChildList(query, createChildList()); //addToChildList(query, childList);
+		addToGroupList(createGroupList()); //addToGroupList(groupList);
+		
+/**/	expListAdapter.removeEmptyGroups();
 		
 		// update view
 		expListAdapter.notifyDataSetChanged();
