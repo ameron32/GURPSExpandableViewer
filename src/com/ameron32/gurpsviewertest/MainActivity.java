@@ -68,17 +68,6 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		init();
 	}
 	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		start();
-	}
-
-	@Override
-	protected void onPause() {
-		super.onPause();
-	}
-
 	ExpandableListView elv;
 	Button bDownload, bUpdate, bLoad, bRefine;
 	EditText etQuery;
@@ -102,6 +91,23 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		etQuery.setVisibility(View.INVISIBLE);
 	}
 
+	
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		start();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+	}
+	
+	
+	
+	
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -142,10 +148,10 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
         	}
         	
         	// determine update
-        	if (fileInfo[1].equalsIgnoreCase("false")) {
+        	if (update.equalsIgnoreCase("false")) {
         		noUpdateFileNames.add(fileName);
         		noUpdateDownloadLocations.add(downloadLocation);
-        	} else if (fileInfo[1].equalsIgnoreCase("true")){
+        	} else if (update.equalsIgnoreCase("true")){
         		updateFileNames.add(fileName);
         		updateDownloadLocations.add(downloadLocation);
         	} else {

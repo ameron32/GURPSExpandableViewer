@@ -90,7 +90,8 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 		tvClass.setText(go.getClass().getSimpleName());
 		setLinkText(tvContent, StringTools.convertBarsToParagraphs(
 				go.getDescription())
-				+ "\n" + go.getSID() + "\n" + ((go.getNotes().size() > 0) ? go.getNotes() : "[No Notes]"));
+//				+ "\n" + go.getSID() 
+				+ "\n\n" + ((go.getNotes().size() > 0) ? go.getNotes() : "[No Notes]"));
 		tvObjectId.setText("[ " + go.getSID().trim().toUpperCase(Locale.ENGLISH) + " ]");
 	}
 	
