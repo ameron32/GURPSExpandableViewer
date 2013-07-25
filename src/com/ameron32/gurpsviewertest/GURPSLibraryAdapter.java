@@ -49,6 +49,9 @@ public class GURPSLibraryAdapter extends SimpleExpandableListAdapter {
 			int[] childTo) {
 		super(context, groupData, expandedGroupLayout,
 				groupFrom, groupTo, revisedChildData, childLayout, childFrom, childTo);
+		
+		
+		
 		groupData.addAll(loadGroupData);
 		childData.addAll(loadChildData);
 		convertChildData();

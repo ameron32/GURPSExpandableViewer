@@ -15,6 +15,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 public class Downloader extends AsyncTask<String, Integer, String> {
 
@@ -31,10 +32,16 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 	public String getDlPath() {
 		return dlDir + dlFiles;
 	}
-	private boolean isUpdate;
+	private boolean forceUpdate;
 
-	public void setUpdate(boolean isUpdate) {
-		this.isUpdate = isUpdate;
+	String updateOrNew;
+	public void setUpdate(boolean forceUpdate) {
+		this.forceUpdate = forceUpdate;
+		if (forceUpdate) {
+			updateOrNew = "Updating";
+		} else {
+			updateOrNew = "Downloading";
+		}
 	}
 
 	private final ProgressDialog mDownloadDialog;
@@ -42,15 +49,15 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 	public Downloader(Context context, Runnable doNext) {
 		this.doNext = doNext;
 		complete = false;
-		isUpdate = false;
-		
+		setUpdate(false);
+				
         mDownloadDialog = new ProgressDialog(context);
-        mDownloadDialog.setTitle("Downloading from Dropbox...");
-        mDownloadDialog.setMessage("");
-        mDownloadDialog.setIndeterminate(false);
-        mDownloadDialog.setMax(100);
-        mDownloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mDownloadDialog.setCancelable(false);
+//        mDownloadDialog.setTitle("Downloading " + updateOrNew  + " from Dropbox...");
+//        mDownloadDialog.setMessage("");
+//        mDownloadDialog.setIndeterminate(false);
+//        mDownloadDialog.setMax(100);
+//        mDownloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+//        mDownloadDialog.setCancelable(false);
 	}
 
 	private String currentDlFile = "";
@@ -59,7 +66,7 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 		File fDF;
 		for (short u = 0; u < sUrl.length; u++) {
 			fDF = new File(dlDir + dlFiles[u]);
-			if ((!fDF.exists()) || (fDF.exists() && isUpdate)) {
+			if ((!fDF.exists()) || (fDF.exists() && forceUpdate)) {
 				complete = false;
 				try {
 					currentDlFile = dlFiles[u];
@@ -77,7 +84,7 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 
 					// download the file
 					InputStream input = new BufferedInputStream(
-							url.openStream());
+							url.openStream(), 65535);
 					OutputStream output = new FileOutputStream(dlDir
 							+ dlFiles[u]);
 
@@ -112,6 +119,12 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 	@Override
 	protected void onPreExecute() {
 		super.onPreExecute();
+        mDownloadDialog.setTitle(updateOrNew  + " from Dropbox...");
+        mDownloadDialog.setMessage("");
+        mDownloadDialog.setIndeterminate(false);
+        mDownloadDialog.setMax(100);
+        mDownloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mDownloadDialog.setCancelable(false);
 		mDownloadDialog.show();
 	}
 

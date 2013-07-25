@@ -12,7 +12,9 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.Editable;
+import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -112,7 +114,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     }
     
     private void download() {
-        String[] fileNames = ImportTesting.getAllFilenames();
+        String[][] fileNames = ImportTesting.getAllFilenames();
         
 		// cheat to convert the fileNames for references on the file to the
 		// right fileName
@@ -122,26 +124,75 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 //        			fileNames[n] = file[3];
 //        		}
 //        }
-        String[] downloadLocations = fileNames.clone();
 
-    	// add download directory to standalone filenames, if needed
-        for (int i = 0; i < downloadLocations.length; i++) {
-        	if (!downloadLocations[i].substring(0,3).equalsIgnoreCase("http"))
-        		downloadLocations[i] = downloadDir + downloadLocations[i];
+        ArrayList<String> updateFileNames = new ArrayList<String>();
+        ArrayList<String> noUpdateFileNames = new ArrayList<String>();
+        ArrayList<String> updateDownloadLocations = new ArrayList<String>();
+        ArrayList<String> noUpdateDownloadLocations = new ArrayList<String>();
+        
+        for (String[] fileInfo : fileNames) {
+    		String fileName = fileInfo[0];
+    		String update = fileInfo[1];
+        	String downloadLocation = fileInfo[0];
+        	// add "http" etc, if needed
+        	if (!fileInfo[0].substring(0,3).equalsIgnoreCase("http")) {
+        		downloadLocation = downloadDir + fileName;
+        	} else {
+        		downloadLocation = fileName;
+        	}
+        	
+        	// determine update
+        	if (fileInfo[1].equalsIgnoreCase("false")) {
+        		noUpdateFileNames.add(fileName);
+        		noUpdateDownloadLocations.add(downloadLocation);
+        	} else if (fileInfo[1].equalsIgnoreCase("true")){
+        		updateFileNames.add(fileName);
+        		updateDownloadLocations.add(downloadLocation);
+        	} else {
+        		Log.e("UpdateStatusUnknown","Could not determine update status. Defaulting to YES.");
+        		updateFileNames.add(fileName);
+        		updateDownloadLocations.add(downloadLocation);
+        	}
         }
-        downloadAssets(null, fileNames, true, downloadLocations);
+
+//    	// add download directory to standalone filenames, if needed
+//      for (int i = 0; i < downloadLocations.length; i++) {
+//      	if (!downloadLocations[i][0].substring(0,3).equalsIgnoreCase("http"))
+//      		downloadLocations[i][0] = downloadDir + downloadLocations[i][0];
+//      }
+
+        Runnable b = packDownloadBatch(null, noUpdateFileNames, false, noUpdateDownloadLocations, null);
+        downloadBatch(null, updateFileNames, true, updateDownloadLocations, b);
     }
     
-    private void downloadAssets(String dlDir, String[] fileNames,
-            boolean update, String[] sUrl) {
+    private Runnable packDownloadBatch(
+    		final String dlDir, 
+    		final ArrayList<String> fileNames,
+            final boolean update, 
+            final ArrayList<String> sUrl,
+            final Runnable doNext) {
+    	return new Runnable() {
+			@Override
+			public void run() {
+		        downloadBatch(dlDir, fileNames, update, sUrl, doNext);
+			}
+		};
+    }
+    
+    private void downloadBatch(
+    		final String dlDir, 
+    		final ArrayList<String> fileNames,
+            final boolean update, 
+            final ArrayList<String> sUrl,
+            final Runnable doNext) {
         // execute this when the downloader must be fired
-        final Downloader d = new Downloader(MainActivity.this, null);
+        final Downloader d = new Downloader(MainActivity.this, doNext);
         if (dlDir != null)
             d.setDlDir(dlDir);
-        d.setDlFiles(fileNames);
+        d.setDlFiles(fileNames.toArray(new String[0]));
         if (update)
             d.setUpdate(update);
-        d.execute(sUrl);
+        d.execute(sUrl.toArray(new String[0]));
     }
 
     
@@ -361,23 +412,30 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 			importAndLoad.run();
 			break;
 		case R.id.bLoad:
-			updateText.run();
-			
-			etQuery.setVisibility(View.VISIBLE);
-			bRefine.setVisibility(View.VISIBLE);
-			bLoad.setVisibility(View.GONE);
-			bDownload.setVisibility(View.GONE);
-			bUpdate.setVisibility(View.GONE);
-			tvInstructions.setVisibility(View.GONE);
-			
-			MainActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-			Toast.makeText(MainActivity.this, "rotation unlocked", Toast.LENGTH_LONG).show();
-			
+			load();
 			break;
 		case R.id.bRefine:
 			refineData(etQuery.getText());
 			break;
 		}
+	}
+	
+	private void load() {
+		updateText.run();
+		
+		etQuery.setVisibility(View.VISIBLE);
+		bRefine.setVisibility(View.VISIBLE);
+		bLoad.setVisibility(View.GONE);
+		bDownload.setVisibility(View.GONE);
+		bUpdate.setVisibility(View.GONE);
+		tvInstructions.setVisibility(View.GONE);
+		
+		MainActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+		Toast.makeText(MainActivity.this, "rotation unlocked", Toast.LENGTH_LONG).show();
+		
+		if (expListAdapter != null) expListAdapter.clear();
+		
+		refineData(etQuery.getText());
 	}
 
 	Runnable importAndLoad = new Runnable() {
@@ -493,13 +551,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 			importAndLoad.run();
 			break;
 		case R.id.i_menu_load:
-			updateText.run();
-
-			etQuery.setVisibility(View.VISIBLE);
-			bRefine.setVisibility(View.VISIBLE);
-			bLoad.setVisibility(View.GONE);
-			bDownload.setVisibility(View.GONE);
-			bUpdate.setVisibility(View.GONE);
+			load();
 			break;
 		case R.id.i_menu_exit:
 			confirmExit();
