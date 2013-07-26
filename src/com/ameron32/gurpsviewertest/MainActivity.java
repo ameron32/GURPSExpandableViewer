@@ -71,7 +71,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 	ExpandableListView elv;
 	Button bDownload, bUpdate, bLoad, bRefine;
 	EditText etQuery;
-	TextView tvInstructions;
+	TextView tvInstructions, tvSearchOf;
 	private void init() {
 		elv = (ExpandableListView) findViewById(R.id.expandableListView1);
 		elv.setOnChildClickListener(this);
@@ -83,12 +83,14 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		bLoad.setOnClickListener(this);
 		bRefine = (Button) findViewById(R.id.bRefine);
 		bRefine.setOnClickListener(this);
-		bRefine.setVisibility(View.INVISIBLE);
+		bRefine.setVisibility(View.GONE);
 		etQuery = (EditText) findViewById(R.id.etQuery);
 		etQuery.setOnClickListener(this);
 		etQuery.addTextChangedListener(tcl);
 		tvInstructions = (TextView) findViewById(R.id.tvInstructions);
+		tvSearchOf = (TextView) findViewById(R.id.tvSearchOf);
 		etQuery.setVisibility(View.INVISIBLE);
+		tvSearchOf.setVisibility(View.GONE);
 	}
 
 	
@@ -430,7 +432,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		updateText.run();
 		
 		etQuery.setVisibility(View.VISIBLE);
-		bRefine.setVisibility(View.VISIBLE);
+//		bRefine.setVisibility(View.VISIBLE);
 		bLoad.setVisibility(View.GONE);
 		bDownload.setVisibility(View.GONE);
 		bUpdate.setVisibility(View.GONE);
@@ -488,6 +490,14 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		
 		// get query
 		String query = e.toString().trim();
+
+		if (query.equals("")) {
+			tvSearchOf.setText("");
+			tvSearchOf.setVisibility(View.GONE);
+		} else {
+			tvSearchOf.setText("Results with titles containing: [" + query + "]");
+			tvSearchOf.setVisibility(View.VISIBLE);
+		}
 		
 		// process query
 		addToChildList(query, createChildList()); //addToChildList(query, childList);

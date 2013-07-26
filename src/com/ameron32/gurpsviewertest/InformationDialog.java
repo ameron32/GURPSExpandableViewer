@@ -92,7 +92,7 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 				go.getDescription())
 //				+ "\n" + go.getSID() 
 				+ "\n\n" + ((go.getNotes().size() > 0) ? go.getNotes() : "[No Notes]"));
-		tvObjectId.setText("[ " + go.getSID().trim().toUpperCase(Locale.ENGLISH) + " ]");
+		tvObjectId.setText("[ " + go.getSID().trim().toUpperCase() + " ]");
 	}
 	
 	public void show() {

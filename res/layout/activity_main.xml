@@ -67,14 +67,20 @@
 
         <requestFocus />
     </EditText>
+    
+    <TextView
+	    android:id="@+id/tvSearchOf"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:layout_below="@+id/etQuery"
+        android:layout_alignParentLeft="true"
+	    android:text="Search" />
 
 	<ExpandableListView
         android:id="@+id/expandableListView1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/etQuery"
+        android:layout_below="@+id/tvSearchOf"
         android:layout_alignParentLeft="true" />
-	
-
 
 </RelativeLayout>
