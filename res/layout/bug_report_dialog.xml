@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    <TextView
+        android:id="@+id/tvTitleBR"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="@string/bug_reportBR"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <ProgressBar
+        android:id="@+id/pbTitleBR"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_height="5sp"
+        android:layout_width="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/tvTitleBR" />
+
+    <TextView
+        android:id="@+id/tvGO"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tvTitleBR"
+        android:layout_alignBottom="@+id/tvTitleBR"
+        android:layout_alignParentRight="true"
+        android:text="@string/gurpsobjectBR"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/pbTitleBR" >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <CheckBox
+                android:id="@+id/cb2BR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/cb1BR"
+                android:text="@string/the_information_is_wrongBR" />
+
+            <CheckBox
+                android:id="@+id/cb3BR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/cb2BR"
+                android:text="@string/the_information_is_missing_or_the_display_is_faultyBR" />
+
+            <CheckBox
+                android:id="@+id/cb1BR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/tvDesc1BR"
+                android:text="@string/the_information_is_not_displaying_correctlyBR" />
+
+            <EditText
+                android:id="@+id/etExplain"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/tvDesc2BR"
+                android:ems="10"
+                android:hint="@string/recommendationBR"
+                android:inputType="textMultiLine" />
+
+            <Button
+                android:id="@+id/bSubmitBR"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/etExplain"
+                android:text="@string/submit_this_bug_reportBR" />
+
+            <CheckBox
+                android:id="@+id/cb4BR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/cb3BR"
+                android:text="@string/other_please_include_in_the_box_belowBR" />
+
+            <TextView
+                android:id="@+id/tvDesc2BR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/cb4BR"
+                android:text="@string/best_fix_issueBR"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
+            <TextView
+                android:id="@+id/tvDesc1BR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:text="@string/choose_an_optionBR"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+        </RelativeLayout>
+    </ScrollView>
+
+</RelativeLayout>

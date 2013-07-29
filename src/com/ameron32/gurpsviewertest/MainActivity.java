@@ -6,13 +6,11 @@ import java.util.Locale;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.Editable;
-import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -21,16 +19,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
-import android.widget.SimpleExpandableListAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ameron32.libcharacter.library.PersonalityTrait;
-import com.ameron32.libgurps.References;
 import com.ameron32.libgurps.attackoptions.MeleeAttackOption;
 import com.ameron32.libgurps.attackoptions.ThrownAttackOption;
 import com.ameron32.libgurps.character.stats.Advantage;
@@ -45,13 +43,12 @@ import com.ameron32.libgurps.items.library.LibraryRangedWeapon;
 import com.ameron32.libgurps.items.library.LibraryRangedWeaponAmmunition;
 import com.ameron32.libgurps.items.library.LibraryShield;
 import com.ameron32.libgurps.items.library.LibraryThrowableProjectile;
-import com.ameron32.libgurps.tools.StringTools;
 import com.ameron32.testing.ImportTesting;
 import com.ameron32.testing.TestingTools;
 
 public class MainActivity extends Activity implements OnChildClickListener, OnClickListener, OnKeyListener {
 
-    ImportTesting it;
+    private ImportTesting it;
     private static final String downloadDir = 
     		"https://dl.dropboxusercontent.com/u/949753/GURPS/GURPSBuilder/" 
     		+ ImportTesting.getVERSION() + "/";
@@ -60,40 +57,52 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     public static String getSDDir() {
     	return sdDir;
     }
-	
+
+	private ExpandableListView elv;
+	private Button bDownload, bUpdate, bLoad; 
+	private ImageButton ibRefine;
+	private EditText etQuery;
+	private TextView tvInstructions, tvSearchOf;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
+
+		elv = (ExpandableListView) findViewById(R.id.expandableListView1);
+		bDownload = (Button) findViewById(R.id.bDownload);
+		bUpdate = (Button) findViewById(R.id.bUpdate);
+		bLoad = (Button) findViewById(R.id.bLoad);
+		ibRefine = (ImageButton) findViewById(R.id.ibRefine);
+		etQuery = (EditText) findViewById(R.id.etQuery);
+		tvInstructions = (TextView) findViewById(R.id.tvInstructions);
+		tvSearchOf = (TextView) findViewById(R.id.tvSearchOf);
+		
 		init();
 	}
 	
-	ExpandableListView elv;
-	Button bDownload, bUpdate, bLoad, bRefine;
-	EditText etQuery;
-	TextView tvInstructions, tvSearchOf;
 	private void init() {
-		elv = (ExpandableListView) findViewById(R.id.expandableListView1);
 		elv.setOnChildClickListener(this);
-		bDownload = (Button) findViewById(R.id.bDownload);
 		bDownload.setOnClickListener(this);
-		bUpdate = (Button) findViewById(R.id.bUpdate);
 		bUpdate.setOnClickListener(this);
-		bLoad = (Button) findViewById(R.id.bLoad);
 		bLoad.setOnClickListener(this);
-		bRefine = (Button) findViewById(R.id.bRefine);
-		bRefine.setOnClickListener(this);
-		bRefine.setVisibility(View.GONE);
-		etQuery = (EditText) findViewById(R.id.etQuery);
+		ibRefine.setOnClickListener(this);
+		ibRefine.setVisibility(View.INVISIBLE);
 		etQuery.setOnClickListener(this);
-		etQuery.addTextChangedListener(tcl);
-		tvInstructions = (TextView) findViewById(R.id.tvInstructions);
-		tvSearchOf = (TextView) findViewById(R.id.tvSearchOf);
 		etQuery.setVisibility(View.INVISIBLE);
+		etQuery.addTextChangedListener(tcl);
+		tvInstructions.setText("Steps:\n1. If this is the first time you\'ve run this app, "
+						+ "choose [Download] to pull the most recent copies of the documents and resources. "
+						+ "If you\'ve already done this, you do not need to [Download] unless informed by your "
+						+ "GM of updated documents.\n2. The downloaded files stored on the SD card must be "
+						+ "loaded into memory. Press [Update] to complete this process. If you have recently "
+						+ "run this app, you might not have to do this again.\n3. Press [Load] to populate "
+						+ "the list and begin using this library each time you open/re-open this app. \n\nEach "
+						+ "of these buttons has a corresponding menu option, if needed. \n\nMost common problem: "
+						+ "If the library populates with no information, just the group headers, you must "
+						+ "[Update] again and then [Load] from the menu or button bar. This will resolve this issue.");
 		tvSearchOf.setVisibility(View.GONE);
 	}
-
-	
 	
 	@Override
 	protected void onResume() {
@@ -105,11 +114,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 	protected void onPause() {
 		super.onPause();
 	}
-	
-	
-	
-	
-	
+		
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -124,15 +129,6 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     private void download() {
         String[][] fileNames = ImportTesting.getAllFilenames();
         
-		// cheat to convert the fileNames for references on the file to the
-		// right fileName
-//        for (int n = 0; n < fileNames.length; n++) {
-//        	for (String[] file : References.getReferences())
-//        		if (fileNames[n].equalsIgnoreCase(file[2])) {
-//        			fileNames[n] = file[3];
-//        		}
-//        }
-
         ArrayList<String> updateFileNames = new ArrayList<String>();
         ArrayList<String> noUpdateFileNames = new ArrayList<String>();
         ArrayList<String> updateDownloadLocations = new ArrayList<String>();
@@ -163,12 +159,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
         	}
         }
 
-//    	// add download directory to standalone filenames, if needed
-//      for (int i = 0; i < downloadLocations.length; i++) {
-//      	if (!downloadLocations[i][0].substring(0,3).equalsIgnoreCase("http"))
-//      		downloadLocations[i][0] = downloadDir + downloadLocations[i][0];
-//      }
-
+        // pack runnable so that updates will run then new
         Runnable b = packDownloadBatch(null, noUpdateFileNames, false, noUpdateDownloadLocations, null);
         downloadBatch(null, updateFileNames, true, updateDownloadLocations, b);
     }
@@ -203,12 +194,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
         d.execute(sUrl.toArray(new String[0]));
     }
 
-    
-    
-    
-//    private ArrayList<HashMap<String, String>> groupList;
-//    private ArrayList<ArrayList<HashMap<String, GURPSObject>>> childList;
-//    private ArrayList<ArrayList<HashMap<String, Long>>> childListLong;
+
     private GURPSLibraryAdapter expListAdapter;
     private ArrayList<HashMap<String, String>> createGroupList() {
           ArrayList<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
@@ -232,12 +218,10 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     
     private ArrayList<ArrayList<HashMap<String, GURPSObject>>> createChildList() {
         ArrayList<ArrayList<HashMap<String, GURPSObject>>> result = new ArrayList<ArrayList<HashMap<String, GURPSObject>>>();
-//        ArrayList<ArrayList<HashMap<String, Long>>> resultLong = new ArrayList<ArrayList<HashMap<String, Long>>>();
         
         // prepare a placeholder for each group
 		for (int i = 0; i < include.length; i++) {
 			result.add(new ArrayList<HashMap<String, GURPSObject>>());
-//			resultLong.add(new ArrayList<HashMap<String, Long>>());
 		}
         
 		Class<?>[] excludes = ImportTesting.getExcludes();
@@ -260,36 +244,26 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 							&& include[x].getSimpleName().equals(go.getClass().getSimpleName())) {
 						// add the item to the list
 						HashMap<String, GURPSObject> entry = new HashMap<String, GURPSObject>();
-//						HashMap<String, Long> entryLong = new HashMap<String, Long>();
 						entry.put("Sub Item", go);
-//						entryLong.put("Sub Item", go.getObjectId());
 
 						result.get(x).add(entry);
-//						resultLong.get(x).add(entryLong);
 					}
 				}
 			}
 
 		}
         
-//        childListLong = resultLong;
         return result;
     }
     
     private void clearGroupList() {
-//    	groupList.clear();
-    	
-/**/	expListAdapter.clear();
+    	expListAdapter.clear();
     }
     
     private void addToGroupList(ArrayList<HashMap<String, String>> group) {
 		for (int i = 0; i < include.length; i++) {
 			boolean exclude = false;
-//			for (Integer x : emptys) {
-//				if (x.intValue() == i) {
-//					exclude = true;
-//				}
-//			}
+			
 			if (!exclude) {
 				HashMap<String, String> m = new HashMap<String, String>();
 				m.put("Group Item", include[i].getSimpleName());
@@ -301,25 +275,19 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     }
     
     private void removeGroup(int groupNumber) {
-//		emptys.add(groupNumber);
-		
-/**/	expListAdapter.removeGroup(groupNumber);
+    	expListAdapter.removeGroup(groupNumber);
     }
     
     private void clearChildList() {
-//    	childList.clear();
-//    	childListLong.clear();
-    	
-/**/    expListAdapter.clear();	
+    	expListAdapter.clear();	
     }
     
 	private final ArrayList<ArrayList<HashMap<String, GURPSObject>>> removeThese = new ArrayList<ArrayList<HashMap<String, GURPSObject>>>();
     private void addToChildList(String query, ArrayList<ArrayList<HashMap<String, GURPSObject>>> child) {
     	// prepare a placeholder for each group
 		for (int i = 0; i < include.length; i++) {
-/**/		expListAdapter.addGroup(include[i]);
+			expListAdapter.addGroup(include[i]);
 			child.add(new ArrayList<HashMap<String, GURPSObject>>());
-//			childLong.add(new ArrayList<HashMap<String, Long>>());
 		}
 
 		Class<?>[] excludes = ImportTesting.getExcludes();
@@ -334,7 +302,6 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 				}
 			}
 			
-			/* TEST searchQuery */
 			if (!query.equals("")) {
 				String[] queryA = new String[] { query };
 				if (query.contains(" ")){
@@ -358,14 +325,11 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 									go.getClass().getSimpleName())) {
 						// add the item to the list
 						HashMap<String, GURPSObject> entry = new HashMap<String, GURPSObject>();
-//						HashMap<String, Long> entryLong = new HashMap<String, Long>();
 						entry.put("Sub Item", go);
-//						entryLong.put("Sub Item", go.getObjectId());
 
 						child.get(x).add(entry);
-//						childLong.get(x).add(entryLong);
 						
-/**/					expListAdapter.addChild(x, go);
+						expListAdapter.addChild(x, go);
 					}
 				}
 			}
@@ -384,14 +348,13 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 			child.remove(r);
 		}
 		
-/**/	expListAdapter.removeEmptyGroups();
+		expListAdapter.removeEmptyGroups();
     }
 
     /* This function is called on each child click */
     public boolean onChildClick( ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
     	
     	final GURPSObject go = GURPSObject.findGURPSObjectById(expListAdapter.getChildData(groupPosition, childPosition).getObjectId());
-//    	final GURPSObject go = GURPSObject.findGURPSObjectById(childList.get(groupPosition).get(childPosition).get("Sub Item").getObjectId());
 
     	// generate and display the dialog box for THAT child/GURPSObject
     	final InformationDialog inf = new InformationDialog(R.layout.information_dialog, MainActivity.this, this);
@@ -401,7 +364,6 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
         return true;
     }
  
-    /* This function is called on expansion of the group */
     public void  onGroupExpand  (int groupPosition) {
         try {
             System.out.println("Group exapanding Listener => groupPosition = " + groupPosition);
@@ -422,7 +384,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		case R.id.bLoad:
 			load();
 			break;
-		case R.id.bRefine:
+		case R.id.ibRefine:
 			refineData(etQuery.getText());
 			break;
 		}
@@ -432,7 +394,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		updateText.run();
 		
 		etQuery.setVisibility(View.VISIBLE);
-//		bRefine.setVisibility(View.VISIBLE);
+		ibRefine.setVisibility(View.VISIBLE);
 		bLoad.setVisibility(View.GONE);
 		bDownload.setVisibility(View.GONE);
 		bUpdate.setVisibility(View.GONE);
@@ -477,15 +439,12 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 				new int[] { R.id.grp_child }
 				);
 	    elv.setAdapter(expListAdapter);
-	    //addToGroupList//addToChildList
 	}
 	
-//	private final ArrayList<Integer> emptys = new ArrayList<Integer>();
 	private void refineData(Editable e) {
 		// reset info
 		clearGroupList();
 		clearChildList();
-//		emptys.clear();
 		expListAdapter.clear();
 		
 		// get query
@@ -500,10 +459,10 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		}
 		
 		// process query
-		addToChildList(query, createChildList()); //addToChildList(query, childList);
-		addToGroupList(createGroupList()); //addToGroupList(groupList);
+		addToChildList(query, createChildList()); 
+		addToGroupList(createGroupList()); 
 		
-/**/	expListAdapter.removeEmptyGroups();
+		expListAdapter.removeEmptyGroups();
 		
 		// update view
 		expListAdapter.notifyDataSetChanged();

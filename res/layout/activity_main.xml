@@ -8,79 +8,12 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
-    <Button
-	    android:id="@+id/bDownload"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_alignParentLeft="true"
-	    android:layout_alignParentTop="true"
-	    android:text="Download" />
-    	
-	<Button
-	    android:id="@+id/bUpdate"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_toRightOf="@+id/bDownload"
-	    android:layout_alignParentTop="true"
-	    android:text="Update" />
+    <include
+        android:id="@+id/incStartScreen"
+        layout="@layout/start_screen" />
 
-	<Button
-	    android:id="@+id/bLoad"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_alignParentTop="true"
-	    android:layout_toRightOf="@+id/bUpdate"
-	    android:text="Load" />
-	
-	<ScrollView
-        android:id="@+id/svContent"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignLeft="@+id/bDownload"
-        android:layout_below="@+id/bDownload" >
-
-        <TextView
-            android:id="@+id/tvInstructions"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/bDownload"
-            android:layout_below="@+id/bDownload"
-            android:text="Steps: \n1. If this is the first time you&apos;ve run this app, choose [Download] to pull the most recent copies of the documents and resources. If you've already done this, you do not need to [Download] unless informed by your GM of updated documents. \n2. The downloaded files stored on the SD card must be loaded into memory. Press [Update] to complete this process. If you have recently run this app, you might not have to do this again.\n3. Press [Load] to populate the list and begin using this library each time you open/re-open this app. \n\nEach of these buttons has a corresponding menu option, if needed. \n\nMost common problem: If the library populates with no information, just the group headers, you must [Update] again and then [Load] from the menu or button bar. This will resolve this issue." />
-    </ScrollView>
-	
-	<Button
-        android:id="@+id/bRefine"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/bDownload"
-        android:layout_alignRight="@+id/expandableListView1"
-        android:text="Refine" />
-	
-	<EditText
-        android:id="@+id/etQuery"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_toLeftOf="@+id/bRefine"
-        android:layout_alignBottom="@+id/bRefine"
-        android:ems="10" >
-
-        <requestFocus />
-    </EditText>
-    
-    <TextView
-	    android:id="@+id/tvSearchOf"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-        android:layout_below="@+id/etQuery"
-        android:layout_alignParentLeft="true"
-	    android:text="Search" />
-
-	<ExpandableListView
-        android:id="@+id/expandableListView1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/tvSearchOf"
-        android:layout_alignParentLeft="true" />
+    <include
+        android:id="@+id/incLibraryInterface"
+        layout="@layout/library_interface" />
 
 </RelativeLayout>

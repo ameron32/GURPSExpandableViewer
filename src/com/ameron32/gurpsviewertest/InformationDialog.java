@@ -28,15 +28,15 @@ import com.ameron32.libgurps.tools.ActivityTools;
 import com.ameron32.libgurps.tools.StringTools;
 import com.ameron32.testing.ImportTesting;
 
-public class InformationDialog extends Dialog implements Dialog.OnKeyListener, Dialog.OnClickListener {
+public class InformationDialog extends GURPSDialog {
 
-	private final Activity a;
+	private final Activity sourceActivity;
 	private final Context context;
 	private final int resourceId;
-	public InformationDialog(int resourceId, Context context, Activity a) {
+	public InformationDialog(int resourceId, Context context, Activity sourceActivity) {
 		super(context);
 		this.context = context;
-		this.a = a;
+		this.sourceActivity = sourceActivity;
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(resourceId);
 		this.resourceId = resourceId;
@@ -48,29 +48,39 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 		tvPage = (TextView) findViewById(R.id.tvPage);
 		pbLoading = (ProgressBar) findViewById(R.id.pbLoading);
 		bClose = (Button) findViewById(R.id.bClose);
+		bBug = (Button) findViewById(R.id.bBug);
 	}
 
 	private final TextView tvTitle, tvClass, tvContent, tvObjectId, tvPage;
-	private final Button bClose;
+	private final Button bClose, bBug;
 	private final ProgressBar pbLoading;
 	private void init() {
-		tvContent.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				// nothing
-			}
-		});
+		tvContent.setOnClickListener(ocl);
 		pbLoading.setMax(100);
-		bClose.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				InformationDialog.this.dismiss();
-			}
-		});
+		bClose.setOnClickListener(ocl);
+		bBug.setOnClickListener(ocl);
 		setOnKeyListener(this);
 	}
-
+	
+	View.OnClickListener ocl = new View.OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			switch(v.getId()) {
+			case R.id.bClose:
+				InformationDialog.this.dismiss();
+				break;
+			case R.id.bBug:
+				final BugReportDialog brd = new BugReportDialog(context, sourceActivity);
+				brd.set(GURPSObject.findGURPSObjectById(goObjectId));
+				brd.show();
+				break;
+			}
+		}
+	};
+	
+	long goObjectId;
 	public void set(final GURPSObject go) {
+		goObjectId = go.getObjectId();
 		init();
 
 		if (go instanceof Advantage || go instanceof Skill) {
@@ -98,17 +108,6 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 	public void show() {
 		super.show();
 		pbLoading.setProgress(100);
-	}
-
-	@Override
-	public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK) dialog.dismiss();
-		return true;
-	}
-
-	@Override
-	public void onClick(DialogInterface dialog, int which) {
-		dialog.dismiss();
 	}
 	
 	private static final List<String> allNames = new ArrayList<String>();
@@ -209,7 +208,7 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 			for (GURPSObject go : ImportTesting.getEverything()) {
 				if (!found && go.getName().equalsIgnoreCase(name)) {
 					found = true;
-			    	final InformationDialog inf = new InformationDialog(resourceId, context, a);
+			    	final InformationDialog inf = new InformationDialog(resourceId, context, sourceActivity);
 			    	inf.set(go);
 			    	inf.show();
 				}
@@ -221,26 +220,25 @@ public class InformationDialog extends Dialog implements Dialog.OnKeyListener, D
 	public class PageLinkListener implements View.OnClickListener {
 
 		final GURPSObject go;
-		public PageLinkListener(GURPSObject go) {
+		public PageLinkListener(final GURPSObject go) {
 			this.go = go;
 		}
 		
 		@Override
 		public void onClick(View v) {
-			
 			// TODO change to dynamic
 			if (go instanceof Advantage) {
 				Advantage adv = (Advantage) go;
 				String book = (adv.getDocumentSource().equals("BasicSet")) ? "B" : "";
 				String pageNumber = adv.getiPage() + "";
 				
-				new ActivityTools(a, MainActivity.getSDDir()).openInPDF(book, pageNumber);;
+				new ActivityTools(sourceActivity, MainActivity.getSDDir()).openInPDF(book, pageNumber);;
 			} else if (go instanceof Skill) {
 				Skill sk = (Skill) go;
 				String book = (sk.getDocumentSource().equals("BasicSet")) ? "B" : "";
 				String pageNumber = sk.getiPage() + "";
 				
-				new ActivityTools(a, MainActivity.getSDDir()).openInPDF(book, pageNumber);;
+				new ActivityTools(sourceActivity, MainActivity.getSDDir()).openInPDF(book, pageNumber);;
 			}
 		}
 	}

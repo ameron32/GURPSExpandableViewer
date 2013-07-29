@@ -13,17 +13,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:text="Title"
+        android:text="@string/titleID"
         android:textSize="28sp" />
-
-    <TextView
-        android:id="@+id/tvClass"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/tvTitle"
-        android:layout_alignParentRight="true"
-        android:text="Class"
-        android:textSize="24sp" />
 
     <ProgressBar
         android:id="@+id/pbLoading"
@@ -44,14 +35,14 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical" >
 
             <TextView
                 android:id="@+id/tvContent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Content"
+                android:text="@string/contentID"
                 android:textSize="16sp" />
         </LinearLayout>
     </ScrollView>
@@ -63,7 +54,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:text="Close" />
+        android:text="@string/closeID" />
 
     <TextView
         android:id="@+id/tvPage"
@@ -71,18 +62,38 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/bClose"
         android:layout_alignRight="@+id/svContent"
-        android:text="PageNo"
+        android:text="@string/pagenoID"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@android:color/holo_red_light" />
+
+    <Button
+        android:id="@+id/bBug"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:text="@string/report_bugID" />
 
     <TextView
         android:id="@+id/tvObjectId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/bClose"
-        android:layout_alignLeft="@+id/svContent"
-        android:text="ObjectId"
+        android:layout_alignBaseline="@+id/tvTitle"
+        android:layout_alignBottom="@+id/tvTitle"
+        android:layout_centerHorizontal="true"
+        android:text="@string/objectidID"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@android:color/secondary_text_dark" />
+
+    <TextView
+        android:id="@+id/tvClass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tvObjectId"
+        android:layout_alignBottom="@+id/tvObjectId"
+        android:layout_alignRight="@+id/pbLoading"
+        android:text="@string/classID"
+        android:textSize="24sp" />
 
 </RelativeLayout>

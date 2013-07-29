@@ -4,5 +4,28 @@
     <string name="app_name">GURPSViewerTest</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
+    <string name="gurpsobjectBR">GURPSObject</string>
+    <string name="bug_reportBR">Bug Report</string>
+    <string name="the_information_is_wrongBR">the information is wrong</string>
+    <string name="the_information_is_missing_or_the_display_is_faultyBR">the information is missing or the display is faulty</string>
+    <string name="the_information_is_not_displaying_correctlyBR">the information is not displaying correctly</string>
+    <string name="recommendationBR">Recommendation</string>
+    <string name="submit_this_bug_reportBR">Submit this Bug Report</string>
+    <string name="other_please_include_in_the_box_belowBR">other, please include in the box below</string>
+    <string name="best_fix_issueBR">Please explain how I can best fix the issue, as you see it. Elaborate on the problem if you feel it is needed.</string>
+    <string name="choose_an_optionBR">You see that something is wrong. Choose the option(s) below to tell me what to look for so that I can fix it.</string>
+    <string name="titleID">Title</string>
+    <string name="contentID">Content</string>
+    <string name="closeID">Close</string>
+    <string name="pagenoID">PageNo</string>
+    <string name="report_bugID">Report Bug</string>
+    <string name="objectidID">ObjectId</string>
+    <string name="classID">Class</string>
+    <string name="first_runMA">Steps: \\n1. If this is the first time you&amp;apos;ve run this app, choose [Download] to pull the most recent copies of the documents and resources. If you\'ve already done this, you do not need to [Download] unless informed by your GM of updated documents. \\n2. The downloaded files stored on the SD card must be loaded into memory. Press [Update] to complete this process. If you have recently run this app, you might not have to do this again.\\n3. Press [Load] to populate the list and begin using this library each time you open/re-open this app. \\n\\nEach of these buttons has a corresponding menu option, if needed. \\n\\nMost common problem: If the library populates with no information, just the group headers, you must [Update] again and then [Load] from the menu or button bar. This will resolve this issue.</string>
+    <string name="loadMA">Load</string>
+    <string name="downloadMA">Download</string>
+    <string name="updateMA">Update</string>
+    <string name="searchLI">Search</string>
+    <string name="search_buttonLI">Search Button</string>
 
 </resources>
