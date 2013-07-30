@@ -27,9 +27,9 @@ public class BugReportDialog extends GURPSDialog {
 	private ProgressBar pbTitle;
 	
 	public BugReportDialog(Context context, Activity sourceActivity) {
-		super(context);
+		super(context, R.layout.bug_report_dialog);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setContentView(R.layout.bug_report_dialog);
+//		setContentView(R.layout.bug_report_dialog);
 		this.sourceActivity = sourceActivity;
 	}
 	

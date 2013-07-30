@@ -357,7 +357,7 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
     	final GURPSObject go = GURPSObject.findGURPSObjectById(expListAdapter.getChildData(groupPosition, childPosition).getObjectId());
 
     	// generate and display the dialog box for THAT child/GURPSObject
-    	final InformationDialog inf = new InformationDialog(R.layout.information_dialog, MainActivity.this, this);
+    	final InformationDialog inf = new InformationDialog(MainActivity.this, this);
     	inf.set(go);
     	inf.show();
     	

@@ -32,14 +32,13 @@ public class InformationDialog extends GURPSDialog {
 
 	private final Activity sourceActivity;
 	private final Context context;
-	private final int resourceId;
-	public InformationDialog(int resourceId, Context context, Activity sourceActivity) {
-		super(context);
+//	private final int resourceId;
+	public InformationDialog(Context context, Activity sourceActivity) {
+		super(context, R.layout.information_dialog);
 		this.context = context;
 		this.sourceActivity = sourceActivity;
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setContentView(resourceId);
-		this.resourceId = resourceId;
+
+//		this.resourceId = resourceId;
 		
 		tvTitle = (TextView) findViewById(R.id.tvTitle);
 		tvClass = (TextView) findViewById(R.id.tvClass);
@@ -208,7 +207,7 @@ public class InformationDialog extends GURPSDialog {
 			for (GURPSObject go : ImportTesting.getEverything()) {
 				if (!found && go.getName().equalsIgnoreCase(name)) {
 					found = true;
-			    	final InformationDialog inf = new InformationDialog(resourceId, context, sourceActivity);
+			    	final InformationDialog inf = new InformationDialog(context, sourceActivity);
 			    	inf.set(go);
 			    	inf.show();
 				}
