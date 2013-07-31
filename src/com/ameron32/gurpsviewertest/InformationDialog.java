@@ -1,25 +1,19 @@
 package com.ameron32.gurpsviewertest;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.ameron32.libgurps.character.stats.Advantage;
 import com.ameron32.libgurps.character.stats.Skill;
@@ -32,13 +26,11 @@ public class InformationDialog extends GURPSDialog {
 
 	private final Activity sourceActivity;
 	private final Context context;
-//	private final int resourceId;
+
 	public InformationDialog(Context context, Activity sourceActivity) {
 		super(context, R.layout.information_dialog);
 		this.context = context;
 		this.sourceActivity = sourceActivity;
-
-//		this.resourceId = resourceId;
 		
 		tvTitle = (TextView) findViewById(R.id.tvTitle);
 		tvClass = (TextView) findViewById(R.id.tvClass);
@@ -101,7 +93,7 @@ public class InformationDialog extends GURPSDialog {
 				go.getDescription())
 //				+ "\n" + go.getSID() 
 				+ "\n\n" + ((go.getNotes().size() > 0) ? go.getNotes() : "[No Notes]"));
-		tvObjectId.setText("[ " + go.getSID().trim().toUpperCase() + " ]");
+		tvObjectId.setText("[ " + go.getSID().trim().toUpperCase(Locale.US) + " ]");
 	}
 	
 	public void show() {
@@ -202,7 +194,6 @@ public class InformationDialog extends GURPSDialog {
 		
 		@Override
 		public void onClick(View v) {
-//			Toast.makeText(context, name, Toast.LENGTH_LONG).show();
 			boolean found = false;
 			for (GURPSObject go : ImportTesting.getEverything()) {
 				if (!found && go.getName().equalsIgnoreCase(name)) {

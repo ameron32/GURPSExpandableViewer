@@ -7,15 +7,15 @@ import java.util.Locale;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Resources.Theme;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
@@ -28,6 +28,11 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.SubMenu;
+import com.actionbarsherlock.app.SherlockActivity;
 import com.ameron32.libcharacter.library.PersonalityTrait;
 import com.ameron32.libgurps.attackoptions.MeleeAttackOption;
 import com.ameron32.libgurps.attackoptions.ThrownAttackOption;
@@ -46,7 +51,7 @@ import com.ameron32.libgurps.items.library.LibraryThrowableProjectile;
 import com.ameron32.testing.ImportTesting;
 import com.ameron32.testing.TestingTools;
 
-public class MainActivity extends Activity implements OnChildClickListener, OnClickListener, OnKeyListener {
+public class MainActivity extends SherlockActivity implements OnChildClickListener, OnClickListener, OnKeyListener {
 
     private ImportTesting it;
     private static final String downloadDir = 
@@ -65,8 +70,10 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 	private TextView tvInstructions, tvSearchOf;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+//		setTheme(); //Used for theme switching in samples
 		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		
+//		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
 
 		elv = (ExpandableListView) findViewById(R.id.expandableListView1);
@@ -80,6 +87,11 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		
 		init();
 	}
+	
+//	private void redirect() {
+//		Intent runOther = new Intent(MainActivity.this, Tabs.class);
+//		startActivity(runOther);
+//	}
 	
 	private void init() {
 		elv.setOnChildClickListener(this);
@@ -115,11 +127,27 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		super.onPause();
 	}
 		
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+    	SubMenu primary = menu.addSubMenu("Actions");
+
+        MenuItem subMenu1Item = primary.getItem();
+        subMenu1Item.setIcon(R.drawable.ic_title_share_default);
+        subMenu1Item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+        MenuInflater inf = getSupportMenuInflater();
+        inf.inflate(R.menu.main, primary);
+        
+        //Overflow for ActionBarSherlock
+//        SubMenu subMenu2 = menu.addSubMenu("Overflow Item");
+//        subMenu2.add("These");
+//        subMenu2.add("Are");
+//        subMenu2.add("Sample");
+//        subMenu2.add("Items");
+
+//        MenuItem subMenu2Item = subMenu2.getItem();
+//        subMenu2Item.setIcon(R.drawable.ic_compose);
+        
+		return super.onCreateOptionsMenu(menu);
 	}
 	
     private void start() {
@@ -536,4 +564,13 @@ public class MainActivity extends Activity implements OnChildClickListener, OnCl
 		return false;
 	}
 
+	@Override
+	public boolean onSearchRequested() {
+		if (etQuery.getVisibility()==View.VISIBLE) {
+				etQuery.requestFocus();
+		}
+		return super.onSearchRequested();
+	}
+
+	
 }

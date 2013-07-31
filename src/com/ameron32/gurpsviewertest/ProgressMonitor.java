@@ -22,7 +22,6 @@ public class ProgressMonitor extends AsyncTask<String, Integer, String> {
         pDialog.setMax(totalStages);
         pDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         pDialog.setCancelable(false);
-//        pDialog.setButton(ProgressDialog.BUTTON_POSITIVE, "Close", (android.content.DialogInterface.OnClickListener) this);
 	}
 	
 
