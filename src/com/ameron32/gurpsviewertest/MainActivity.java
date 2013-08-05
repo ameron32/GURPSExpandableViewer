@@ -71,7 +71,7 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 		super.onCreate(savedInstanceState);
 		
 //		requestWindowFeature(Window.FEATURE_NO_TITLE);
-        requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
+//        requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
 		setContentView(R.layout.activity_main);
 
 		elv = (ExpandableListView) findViewById(R.id.expandableListView1);
