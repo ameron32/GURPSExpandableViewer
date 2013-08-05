@@ -4,35 +4,33 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.content.res.Resources.Theme;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.Window;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 import com.actionbarsherlock.view.SubMenu;
-import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.widget.SearchView;
+import com.actionbarsherlock.widget.SearchView.OnQueryTextListener;
 import com.ameron32.libcharacter.library.PersonalityTrait;
 import com.ameron32.libgurps.attackoptions.MeleeAttackOption;
 import com.ameron32.libgurps.attackoptions.ThrownAttackOption;
@@ -65,8 +63,7 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 
 	private ExpandableListView elv;
 	private Button bDownload, bUpdate, bLoad; 
-	private ImageButton ibRefine;
-	private EditText etQuery;
+	private SearchView svQuery;
 	private TextView tvInstructions, tvSearchOf;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -74,14 +71,13 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 		super.onCreate(savedInstanceState);
 		
 //		requestWindowFeature(Window.FEATURE_NO_TITLE);
+        requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
 		setContentView(R.layout.activity_main);
 
 		elv = (ExpandableListView) findViewById(R.id.expandableListView1);
 		bDownload = (Button) findViewById(R.id.bDownload);
 		bUpdate = (Button) findViewById(R.id.bUpdate);
 		bLoad = (Button) findViewById(R.id.bLoad);
-		ibRefine = (ImageButton) findViewById(R.id.ibRefine);
-		etQuery = (EditText) findViewById(R.id.etQuery);
 		tvInstructions = (TextView) findViewById(R.id.tvInstructions);
 		tvSearchOf = (TextView) findViewById(R.id.tvSearchOf);
 		
@@ -98,11 +94,6 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 		bDownload.setOnClickListener(this);
 		bUpdate.setOnClickListener(this);
 		bLoad.setOnClickListener(this);
-		ibRefine.setOnClickListener(this);
-		ibRefine.setVisibility(View.INVISIBLE);
-		etQuery.setOnClickListener(this);
-		etQuery.setVisibility(View.INVISIBLE);
-		etQuery.addTextChangedListener(tcl);
 		tvInstructions.setText("Steps:\n1. If this is the first time you\'ve run this app, "
 						+ "choose [Download] to pull the most recent copies of the documents and resources. "
 						+ "If you\'ve already done this, you do not need to [Download] unless informed by your "
@@ -137,21 +128,26 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
         MenuInflater inf = getSupportMenuInflater();
         inf.inflate(R.menu.main, primary);
         
-        //Overflow for ActionBarSherlock
-//        SubMenu subMenu2 = menu.addSubMenu("Overflow Item");
-//        subMenu2.add("These");
-//        subMenu2.add("Are");
-//        subMenu2.add("Sample");
-//        subMenu2.add("Items");
-
-//        MenuItem subMenu2Item = subMenu2.getItem();
-//        subMenu2Item.setIcon(R.drawable.ic_compose);
+        svQuery = new SearchView(getSupportActionBar().getThemedContext());
+//		svQuery.setOnClickListener(this);
+		svQuery.setQueryHint("Search");
+		svQuery.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+		svQuery.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+		svQuery.setOnQueryTextListener(qtl);
+		
+        menu.add("Search")
+        .setIcon(
+//        		isLight ? R.drawable.ic_search_inverse : 
+        			R.drawable.abs__ic_search)
+        .setActionView(svQuery)
+        .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
         
 		return super.onCreateOptionsMenu(menu);
 	}
 	
     private void start() {
         it = new ImportTesting(new String[] { sdDir });
+//        importThenLoad2.execute();
     }
     
     private void download() {
@@ -284,10 +280,6 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
         return result;
     }
     
-    private void clearGroupList() {
-    	expListAdapter.clear();
-    }
-    
     private void addToGroupList(ArrayList<HashMap<String, String>> group) {
 		for (int i = 0; i < include.length; i++) {
 			boolean exclude = false;
@@ -304,10 +296,6 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
     
     private void removeGroup(int groupNumber) {
     	expListAdapter.removeGroup(groupNumber);
-    }
-    
-    private void clearChildList() {
-    	expListAdapter.clear();	
     }
     
 	private final ArrayList<ArrayList<HashMap<String, GURPSObject>>> removeThese = new ArrayList<ArrayList<HashMap<String, GURPSObject>>>();
@@ -368,8 +356,6 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 			if (child.get(j).isEmpty()) {
 				removeThese.add(child.get(j));
 				removeGroup(j);
-				
-
 			}
 		}
 		for (ArrayList<HashMap<String, GURPSObject>> r : removeThese) {
@@ -407,22 +393,22 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 			download();
 			break;
 		case R.id.bUpdate:
-			importAndLoad.run();
+			update();
 			break;
 		case R.id.bLoad:
 			load();
 			break;
-		case R.id.ibRefine:
-			refineData(etQuery.getText());
-			break;
 		}
+	}
+
+	private void update() {
+		importOnly.run();
 	}
 	
 	private void load() {
 		updateText.run();
 		
-		etQuery.setVisibility(View.VISIBLE);
-		ibRefine.setVisibility(View.VISIBLE);
+		/* dup */
 		bLoad.setVisibility(View.GONE);
 		bDownload.setVisibility(View.GONE);
 		bUpdate.setVisibility(View.GONE);
@@ -433,10 +419,11 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 		
 		if (expListAdapter != null) expListAdapter.clear();
 		
-		refineData(etQuery.getText());
+		refineData(svQuery.getQuery().toString());
+		/* end dup*/
 	}
 
-	Runnable importAndLoad = new Runnable() {
+	Runnable importOnly = new Runnable() {
 		@Override
 		public void run() {
 	    	new ProgressMonitor(MainActivity.this, it, null).execute();
@@ -446,6 +433,45 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 		@Override
 		public void run() {
 			createELA();
+		}
+	};
+	
+	AsyncTask<String, Integer, String> importThenLoad2 = new AsyncTask<String, Integer, String>() {
+		@Override
+		protected void onPreExecute() {
+			updateText.run();
+			super.onPreExecute();
+		}
+		@Override
+		protected String doInBackground(String... params) {
+			importOnly.run();
+			return null;
+		}
+		@Override
+		protected void onPostExecute(String result) {
+			/* dup */
+			updateText.run();
+			
+			bLoad.setVisibility(View.GONE);
+			bDownload.setVisibility(View.GONE);
+			bUpdate.setVisibility(View.GONE);
+			tvInstructions.setVisibility(View.GONE);
+			
+			MainActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+			Toast.makeText(MainActivity.this, "rotation unlocked", Toast.LENGTH_LONG).show();
+			
+			if (expListAdapter != null) expListAdapter.clear();
+			
+			refineData(svQuery.getQuery().toString());
+			/* end dup */
+			
+			super.onPostExecute(result);
+		}
+	};
+	Runnable importThenLoad = new Runnable() {
+		@Override
+		public void run() {
+			new ProgressMonitor(MainActivity.this, it, updateText).execute();
 		}
 	};
 	
@@ -469,31 +495,34 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 	    elv.setAdapter(expListAdapter);
 	}
 	
-	private void refineData(Editable e) {
+	private void refineData(String s) {
 		// reset info
-		clearGroupList();
-		clearChildList();
-		expListAdapter.clear();
-		
-		// get query
-		String query = e.toString().trim();
+		if (expListAdapter != null) {
+			expListAdapter.clear();
 
-		if (query.equals("")) {
-			tvSearchOf.setText("");
-			tvSearchOf.setVisibility(View.GONE);
+			// get query
+			String query = s.trim();
+
+			if (query.equals("")) {
+				tvSearchOf.setText("");
+				tvSearchOf.setVisibility(View.GONE);
+			} else {
+				tvSearchOf.setText("Results with titles containing: [" + query
+						+ "]");
+				tvSearchOf.setVisibility(View.VISIBLE);
+			}
+
+			// process query
+			addToChildList(query, createChildList());
+			addToGroupList(createGroupList());
+
+			expListAdapter.removeEmptyGroups();
+
+			// update view
+			expListAdapter.notifyDataSetChanged();
 		} else {
-			tvSearchOf.setText("Results with titles containing: [" + query + "]");
-			tvSearchOf.setVisibility(View.VISIBLE);
+			// do nothing
 		}
-		
-		// process query
-		addToChildList(query, createChildList()); 
-		addToGroupList(createGroupList()); 
-		
-		expListAdapter.removeEmptyGroups();
-		
-		// update view
-		expListAdapter.notifyDataSetChanged();
 	}
 
 	@Override
@@ -531,16 +560,17 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 		a.show();
 	}
 	
-	TextWatcher tcl = new TextWatcher() {
+	OnQueryTextListener qtl = new OnQueryTextListener() {
 		@Override
-		public void onTextChanged(CharSequence s, int start, int before, int count) {}
+		public boolean onQueryTextSubmit(String queryText) {
+			refineData(queryText);
+			return false;
+		}
 		
 		@Override
-		public void beforeTextChanged(CharSequence s, int start, int count,	int after) {}
-		
-		@Override
-		public void afterTextChanged(Editable s) {
-			refineData(s);
+		public boolean onQueryTextChange(String queryText) {
+			refineData(queryText);
+			return false;
 		}
 	};
 	
@@ -551,7 +581,7 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 			download();
 			break;
 		case R.id.i_menu_update:
-			importAndLoad.run();
+			importOnly.run();
 			break;
 		case R.id.i_menu_load:
 			load();
@@ -566,11 +596,10 @@ public class MainActivity extends SherlockActivity implements OnChildClickListen
 
 	@Override
 	public boolean onSearchRequested() {
-		if (etQuery.getVisibility()==View.VISIBLE) {
-				etQuery.requestFocus();
+		if (svQuery.getVisibility() == View.VISIBLE) {
+				svQuery.requestFocus();
 		}
 		return super.onSearchRequested();
 	}
-
 	
 }

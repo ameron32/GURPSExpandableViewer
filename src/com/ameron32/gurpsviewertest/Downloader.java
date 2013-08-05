@@ -15,7 +15,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 public class Downloader extends AsyncTask<String, Integer, String> {
 
@@ -28,7 +27,7 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 	public static String[] getDlFiles() {
 		return dlFiles;
 	}
-	private List<String> successfulDownloads;
+	private final List<String> successfulDownloads = new ArrayList<String>();
 	public String getDlPath() {
 		return dlDir + dlFiles;
 	}
@@ -45,24 +44,29 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 	}
 
 	private final ProgressDialog mDownloadDialog;
-	private Runnable doNext;
-	public Downloader(Context context, Runnable doNext) {
+	private final Runnable doNext;
+	public Downloader(final Context context, final Runnable doNext) {
 		this.doNext = doNext;
 		complete = false;
 		setUpdate(false);
 				
         mDownloadDialog = new ProgressDialog(context);
-//        mDownloadDialog.setTitle("Downloading " + updateOrNew  + " from Dropbox...");
-//        mDownloadDialog.setMessage("");
-//        mDownloadDialog.setIndeterminate(false);
-//        mDownloadDialog.setMax(100);
-//        mDownloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-//        mDownloadDialog.setCancelable(false);
 	}
 
 	private String currentDlFile = "";
 	@Override
-	protected String doInBackground(String... sUrl) {
+	protected void onPreExecute() {
+		super.onPreExecute();
+	    mDownloadDialog.setTitle(updateOrNew  + " from Dropbox...");
+	    mDownloadDialog.setMessage("");
+	    mDownloadDialog.setIndeterminate(false);
+	    mDownloadDialog.setMax(100);
+	    mDownloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+	    mDownloadDialog.setCancelable(false);
+		mDownloadDialog.show();
+	}
+	@Override
+	protected String doInBackground(final String... sUrl) {
 		File fDF;
 		for (short u = 0; u < sUrl.length; u++) {
 			fDF = new File(dlDir + dlFiles[u]);
@@ -103,8 +107,6 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 					input.close();
 
 					// record the success of the download
-					if (successfulDownloads == null)
-						successfulDownloads = new ArrayList<String>();
 					successfulDownloads.add(dlDir + dlFiles[u]);
 				} catch (Exception e) {
 					Log.e("Downloader", "Error from: " + sUrl[u] + "\n"
@@ -117,18 +119,6 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 	}
 
 	@Override
-	protected void onPreExecute() {
-		super.onPreExecute();
-        mDownloadDialog.setTitle(updateOrNew  + " from Dropbox...");
-        mDownloadDialog.setMessage("");
-        mDownloadDialog.setIndeterminate(false);
-        mDownloadDialog.setMax(100);
-        mDownloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mDownloadDialog.setCancelable(false);
-		mDownloadDialog.show();
-	}
-
-	@Override
 	protected void onProgressUpdate(Integer... progress) {
 		super.onProgressUpdate(progress);
 		mDownloadDialog.setMessage(currentDlFile);
@@ -136,7 +126,7 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 	}
 
 	@Override
-	protected void onPostExecute(String result) {
+	protected void onPostExecute(final String result) {
 		super.onPostExecute(result);
 		if (successfulDownloads != null)
 			if (successfulDownloads.size() > 0) {
@@ -152,11 +142,11 @@ public class Downloader extends AsyncTask<String, Integer, String> {
 			doNext.run();
 	}
 
-	public void setDlDir(String dlDir) {
+	public void setDlDir(final String dlDir) {
 		Downloader.dlDir = dlDir;
 	}
 
-	public void setDlFiles(String[] dlFiles) {
+	public void setDlFiles(final String[] dlFiles) {
 		Downloader.dlFiles = dlFiles;
 	}
 
